@@ -29,6 +29,7 @@ func configureFlags(api *operations.OffTimeAPI) {
 }
 
 func configureAPI(api *operations.OffTimeAPI) http.Handler {
+
 	// configure the api here
 	api.ServeError = errors.ServeError
 
@@ -230,15 +231,16 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			)
 		})
 
-	api.DeleteUsersUsernameHandler = operations.DeleteUsersUsernameHandlerFunc(func(params operations.DeleteUsersUsernameParams) middleware.Responder {
-		err := userRepo.DeleteUser(params.HTTPRequest.Context(), params.Username)
-		if err != nil {
-			return operations.NewDeleteUsersUsernameInternalServerError().WithPayload(
-				&operations.DeleteUsersUsernameInternalServerErrorBody{Message: err.Error()},
-			)
-		}
-		return operations.NewDeleteUsersUsernameOK()
-	})
+	api.DeleteUsersUsernameHandler = operations.DeleteUsersUsernameHandlerFunc(
+		func(params operations.DeleteUsersUsernameParams) middleware.Responder {
+			err := userRepo.DeleteUser(params.HTTPRequest.Context(), params.Username)
+			if err != nil {
+				return operations.NewDeleteUsersUsernameInternalServerError().WithPayload(
+					&operations.DeleteUsersUsernameInternalServerErrorBody{Message: err.Error()},
+				)
+			}
+			return operations.NewDeleteUsersUsernameOK()
+		})
 
 	// USAGE handlers
 	if api.GetUsersUsernameUsageHistoryHandler == nil {

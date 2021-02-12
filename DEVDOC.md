@@ -23,6 +23,8 @@
 - [ ] GET       /rooms
 - [ ] GET       /rooms/{roomID}
 
+### CRUDs
+
 - [x] GetAllUsers
 - [x] GetUser
 - [x] CreateUser
@@ -33,7 +35,9 @@
 - [ ] CreateUsageHistoryForUser
 - [ ] DeleteAllUsageHistoryForUser
 
-- [ ] GetAllRooms
-- [ ] GetRoom
+- [x] GetAllRooms
+- [x] GetRoom
+- [x] CreateRoom
+- [x] UpdateRoom
 
 ## dev-log

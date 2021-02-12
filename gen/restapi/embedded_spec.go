@@ -486,14 +486,17 @@ func init() {
         },
         "userUsages": {
           "description": "rank of a user",
-          "type": "object",
-          "properties": {
-            "totalTime": {
-              "description": "Duration in seconds.",
-              "type": "integer"
-            },
-            "username": {
-              "type": "string"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "totalTime": {
+                "description": "Duration in seconds.",
+                "type": "integer"
+              },
+              "username": {
+                "type": "string"
+              }
             }
           }
         }
@@ -1269,21 +1272,14 @@ func init() {
         },
         "userUsages": {
           "description": "rank of a user",
-          "type": "object",
-          "properties": {
-            "totalTime": {
-              "description": "Duration in seconds.",
-              "type": "integer"
-            },
-            "username": {
-              "type": "string"
-            }
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RoomUserUsagesItems0"
           }
         }
       }
     },
-    "RoomUserUsages": {
-      "description": "rank of a user",
+    "RoomUserUsagesItems0": {
       "type": "object",
       "properties": {
         "totalTime": {

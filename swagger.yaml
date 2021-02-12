@@ -345,13 +345,15 @@ definitions:
         type: string
       userUsages:
         description: rank of a user
-        properties:
-          totalTime:
-            description: Duration in seconds.
-            type: integer
-          username:
-            type: string
-        type: object
+        type: array
+        items:
+          properties:
+            totalTime:
+              description: Duration in seconds.
+              type: integer
+            username:
+              type: string
+          type: object
 parameters:
   usernameParam:
     in: path

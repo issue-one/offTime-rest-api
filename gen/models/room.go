@@ -7,6 +7,7 @@ package models
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -51,8 +52,8 @@ type Room struct {
 	// Format: date-time
 	UpdatedAt strfmt.DateTime `json:"updatedAt,omitempty"`
 
-	// user usages
-	UserUsages *RoomUserUsages `json:"userUsages,omitempty"`
+	// rank of a user
+	UserUsages []*RoomUserUsagesItems0 `json:"userUsages"`
 }
 
 // Validate validates this room
@@ -154,13 +155,20 @@ func (m *Room) validateUserUsages(formats strfmt.Registry) error {
 		return nil
 	}
 
-	if m.UserUsages != nil {
-		if err := m.UserUsages.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("userUsages")
-			}
-			return err
+	for i := 0; i < len(m.UserUsages); i++ {
+		if swag.IsZero(m.UserUsages[i]) { // not required
+			continue
 		}
+
+		if m.UserUsages[i] != nil {
+			if err := m.UserUsages[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("userUsages" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
 	}
 
 	return nil
@@ -182,13 +190,17 @@ func (m *Room) ContextValidate(ctx context.Context, formats strfmt.Registry) err
 
 func (m *Room) contextValidateUserUsages(ctx context.Context, formats strfmt.Registry) error {
 
-	if m.UserUsages != nil {
-		if err := m.UserUsages.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("userUsages")
+	for i := 0; i < len(m.UserUsages); i++ {
+
+		if m.UserUsages[i] != nil {
+			if err := m.UserUsages[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("userUsages" + "." + strconv.Itoa(i))
+				}
+				return err
 			}
-			return err
 		}
+
 	}
 
 	return nil
@@ -212,10 +224,10 @@ func (m *Room) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
-// RoomUserUsages rank of a user
+// RoomUserUsagesItems0 room user usages items0
 //
-// swagger:model RoomUserUsages
-type RoomUserUsages struct {
+// swagger:model RoomUserUsagesItems0
+type RoomUserUsagesItems0 struct {
 
 	// Duration in seconds.
 	TotalTime int64 `json:"totalTime,omitempty"`
@@ -224,18 +236,18 @@ type RoomUserUsages struct {
 	Username string `json:"username,omitempty"`
 }
 
-// Validate validates this room user usages
-func (m *RoomUserUsages) Validate(formats strfmt.Registry) error {
+// Validate validates this room user usages items0
+func (m *RoomUserUsagesItems0) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this room user usages based on context it is used
-func (m *RoomUserUsages) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this room user usages items0 based on context it is used
+func (m *RoomUserUsagesItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *RoomUserUsages) MarshalBinary() ([]byte, error) {
+func (m *RoomUserUsagesItems0) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -243,8 +255,8 @@ func (m *RoomUserUsages) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *RoomUserUsages) UnmarshalBinary(b []byte) error {
-	var res RoomUserUsages
+func (m *RoomUserUsagesItems0) UnmarshalBinary(b []byte) error {
+	var res RoomUserUsagesItems0
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
