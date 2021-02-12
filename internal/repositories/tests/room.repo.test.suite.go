@@ -221,11 +221,8 @@ func RoomRepositoryTestSuite(
 				if err != nil {
 					t.Errorf("failed: %v", err)
 				}
-				for _, usage := range room.UserUsages {
-					if usage.TotalTime != update[usage.Username] {
-						t.Errorf("failed: usage time's are not equal => %v:%v != %v:%v",
-							usage.Username, usage.TotalTime, usage.Username, update[usage.Username])
-					}
+				if !cmp.Equal(update, room.UserUsages) {
+					t.Errorf("failed: %v != %v", room.UserUsages, update)
 				}
 			},
 		},
@@ -239,12 +236,10 @@ func RoomRepositoryTestSuite(
 				if err != nil {
 					t.Errorf("failed: %v", err)
 				}
-				for _, usage := range room.UserUsages {
-					if usage.Username != User01.Username {
-						return
-					}
+				if _, ok := room.UserUsages[User02.Username]; !ok {
+
+					t.Errorf("failed: entry wasn't addded => %v", room.UserUsages)
 				}
-				t.Errorf("failed: entry wasn't addded => %v != %v", room.UserUsages, update)
 			},
 		},
 		{

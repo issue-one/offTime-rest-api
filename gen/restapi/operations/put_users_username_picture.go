@@ -131,3 +131,43 @@ func (o *PutUsersUsernamePictureInternalServerErrorBody) UnmarshalBinary(b []byt
 	*o = res
 	return nil
 }
+
+// PutUsersUsernamePictureNotFoundBody put users username picture not found body
+//
+// swagger:model PutUsersUsernamePictureNotFoundBody
+type PutUsersUsernamePictureNotFoundBody struct {
+
+	// May be null.
+	Entity string `json:"entity,omitempty"`
+
+	// May be null.
+	Identifer string `json:"identifer,omitempty"`
+}
+
+// Validate validates this put users username picture not found body
+func (o *PutUsersUsernamePictureNotFoundBody) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this put users username picture not found body based on context it is used
+func (o *PutUsersUsernamePictureNotFoundBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *PutUsersUsernamePictureNotFoundBody) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *PutUsersUsernamePictureNotFoundBody) UnmarshalBinary(b []byte) error {
+	var res PutUsersUsernamePictureNotFoundBody
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}

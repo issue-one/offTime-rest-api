@@ -76,8 +76,8 @@ func init() {
               "$ref": "#/definitions/Room"
             }
           },
-          "400": {
-            "$ref": "#/responses/BadInput"
+          "404": {
+            "$ref": "#/responses/NotFound"
           },
           "500": {
             "$ref": "#/responses/ServerError"
@@ -271,6 +271,35 @@ func init() {
           },
           "400": {
             "$ref": "#/responses/BadInput"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/usernameParam"
+        }
+      ]
+    },
+    "/users/{username}/roomHistory": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success gettin all Room history of User.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Room"
+              }
+            }
           },
           "404": {
             "$ref": "#/responses/NotFound"
@@ -485,19 +514,9 @@ func init() {
           "example": "2009-05-08 14:40:52,531"
         },
         "userUsages": {
-          "description": "rank of a user",
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "totalTime": {
-                "description": "Duration in seconds.",
-                "type": "integer"
-              },
-              "username": {
-                "type": "string"
-              }
-            }
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
           }
         }
       }
@@ -599,7 +618,19 @@ func init() {
       }
     },
     "NotFound": {
-      "description": "Entity not found."
+      "description": "Entity not found.",
+      "schema": {
+        "properties": {
+          "entity": {
+            "description": "May be null.",
+            "type": "string"
+          },
+          "identifer": {
+            "description": "May be null.",
+            "type": "string"
+          }
+        }
+      }
     },
     "ServerError": {
       "description": "Server error.",
@@ -697,11 +728,16 @@ func init() {
               "$ref": "#/definitions/Room"
             }
           },
-          "400": {
-            "description": "Illegal input for operation.",
+          "404": {
+            "description": "Entity not found.",
             "schema": {
               "properties": {
-                "message": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
                   "type": "string"
                 }
               }
@@ -771,7 +807,19 @@ func init() {
             }
           },
           "404": {
-            "description": "Entity not found."
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
+                  "type": "string"
+                }
+              }
+            }
           },
           "500": {
             "description": "Server error.",
@@ -799,7 +847,19 @@ func init() {
             }
           },
           "404": {
-            "description": "Entity not found."
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
+                  "type": "string"
+                }
+              }
+            }
           },
           "500": {
             "description": "Server error.",
@@ -922,7 +982,19 @@ func init() {
             }
           },
           "404": {
-            "description": "Entity not found."
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
+                  "type": "string"
+                }
+              }
+            }
           },
           "409": {
             "description": "Field occupied.",
@@ -992,7 +1064,71 @@ func init() {
             }
           },
           "404": {
-            "description": "Entity not found."
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "minLength": 5,
+          "type": "string",
+          "name": "username",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/users/{username}/roomHistory": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success gettin all Room history of User.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Room"
+              }
+            }
+          },
+          "404": {
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
+                  "type": "string"
+                }
+              }
+            }
           },
           "500": {
             "description": "Server error.",
@@ -1111,7 +1247,19 @@ func init() {
             }
           },
           "404": {
-            "description": "Entity not found."
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
+                  "type": "string"
+                }
+              }
+            }
           },
           "409": {
             "description": "Field occupied.",
@@ -1271,23 +1419,10 @@ func init() {
           "example": "2009-05-08 14:40:52,531"
         },
         "userUsages": {
-          "description": "rank of a user",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RoomUserUsagesItems0"
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
           }
-        }
-      }
-    },
-    "RoomUserUsagesItems0": {
-      "type": "object",
-      "properties": {
-        "totalTime": {
-          "description": "Duration in seconds.",
-          "type": "integer"
-        },
-        "username": {
-          "type": "string"
         }
       }
     },
@@ -1390,7 +1525,19 @@ func init() {
       }
     },
     "NotFound": {
-      "description": "Entity not found."
+      "description": "Entity not found.",
+      "schema": {
+        "properties": {
+          "entity": {
+            "description": "May be null.",
+            "type": "string"
+          },
+          "identifer": {
+            "description": "May be null.",
+            "type": "string"
+          }
+        }
+      }
     },
     "ServerError": {
       "description": "Server error.",

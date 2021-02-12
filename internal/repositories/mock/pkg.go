@@ -50,15 +50,9 @@ var (
 		ID:           room1Id,
 		HostUsername: User01.Username,
 		Name:         "The Garden",
-		UserUsages: []*models.RoomUserUsagesItems0{
-			{
-				Username:  User01.Username,
-				TotalTime: int64(time.Minute * 3),
-			},
-			{
-				Username:  User03.Username,
-				TotalTime: int64(time.Minute * 15),
-			},
+		UserUsages: map[string]int64{
+			User01.Username: int64(time.Minute * 3),
+			User03.Username: int64(time.Minute * 15),
 		},
 		StartTime: strfmt.DateTime(time.Now().Add(-time.Hour * 75).Round(0)),
 		EndTime:   strfmt.DateTime(time.Now().Add(-time.Hour * 72).Round(0)),
@@ -69,15 +63,9 @@ var (
 		ID:           room2Id,
 		HostUsername: User02.Username,
 		Name:         "HAOB Lounge",
-		UserUsages: []*models.RoomUserUsagesItems0{
-			{
-				Username:  User02.Username,
-				TotalTime: int64(time.Second * 45),
-			},
-			{
-				Username:  User03.Username,
-				TotalTime: int64(time.Second * 150),
-			},
+		UserUsages: map[string]int64{
+			User02.Username: int64(time.Second * 45),
+			User03.Username: int64(time.Second * 150),
 		},
 		StartTime: strfmt.DateTime(time.Now().Add(-time.Hour * 3).Round(0)),
 		EndTime:   strfmt.DateTime(time.Now().Add(-time.Hour * 1).Round(0)),
@@ -89,19 +77,10 @@ var (
 		ID:           room3Id,
 		HostUsername: User03.Username,
 		Name:         "Northgate Artifactory",
-		UserUsages: []*models.RoomUserUsagesItems0{
-			{
-				Username:  User03.Username,
-				TotalTime: int64(time.Minute * 2),
-			},
-			{
-				Username:  User01.Username,
-				TotalTime: int64(time.Minute * 7),
-			},
-			{
-				Username:  User02.Username,
-				TotalTime: int64(time.Minute * 4),
-			},
+		UserUsages: map[string]int64{
+			User03.Username: int64(time.Minute * 2),
+			User01.Username: int64(time.Minute * 7),
+			User02.Username: int64(time.Minute * 4),
 		},
 		StartTime: strfmt.DateTime(time.Now().Add(-time.Minute * 30).Round(0)),
 		CreatedAt: strfmt.DateTime(time.Now().Add(-time.Minute * 75).Round(0)),

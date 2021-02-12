@@ -17,7 +17,7 @@ type roomRepo struct {
 	rooms map[strfmt.UUID]*models.Room
 }
 
-func NewMockRoomRepositories() repositories.Room {
+func NewMockRoomRepository() repositories.Room {
 	return roomRepo{
 		mutex: &sync.RWMutex{},
 		rooms: map[strfmt.UUID]*models.Room{
@@ -28,7 +28,7 @@ func NewMockRoomRepositories() repositories.Room {
 	}
 }
 
-func NewMockRoomRepositoriesCopyEntities() repositories.Room {
+func NewMockRoomRepositoryCopyEntities() repositories.Room {
 	room01Copy := Room01
 	room02Copy := Room02
 	room03Copy := Room03
@@ -42,7 +42,7 @@ func NewMockRoomRepositoriesCopyEntities() repositories.Room {
 	}
 }
 
-func NewMockRoomRepositoriesEmpty() repositories.Room {
+func NewMockRoomRepositoryEmpty() repositories.Room {
 	return roomRepo{
 		mutex: &sync.RWMutex{},
 		rooms: make(map[strfmt.UUID]*models.Room),
@@ -141,21 +141,8 @@ func (r roomRepo) UpdateRoomUserUsages(ctx context.Context, roomid strfmt.UUID, 
 	if !ok {
 		return nil, repositories.ErrRoomNotFound
 	}
-	foundUsernames := make(map[string]struct{}, 0)
-	for _, usage := range oldRoom.UserUsages {
-		if seconds, ok := (*usages)[usage.Username]; ok {
-			usage.TotalTime = seconds
-		}
-		foundUsernames[usage.Username] = struct{}{}
-	}
 	for username, seconds := range *usages {
-		if _, ok := foundUsernames[username]; !ok {
-			oldRoom.UserUsages = append(oldRoom.UserUsages,
-				&models.RoomUserUsagesItems0{
-					Username:  username,
-					TotalTime: seconds,
-				})
-		}
+		oldRoom.UserUsages[username] = seconds
 	}
 	copy := *oldRoom
 	return &copy, nil

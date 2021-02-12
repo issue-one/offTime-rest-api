@@ -58,43 +58,6 @@ func (o *GetRoomsRoomID) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-// GetRoomsRoomIDBadRequestBody get rooms room ID bad request body
-//
-// swagger:model GetRoomsRoomIDBadRequestBody
-type GetRoomsRoomIDBadRequestBody struct {
-
-	// message
-	Message string `json:"message,omitempty"`
-}
-
-// Validate validates this get rooms room ID bad request body
-func (o *GetRoomsRoomIDBadRequestBody) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this get rooms room ID bad request body based on context it is used
-func (o *GetRoomsRoomIDBadRequestBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetRoomsRoomIDBadRequestBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetRoomsRoomIDBadRequestBody) UnmarshalBinary(b []byte) error {
-	var res GetRoomsRoomIDBadRequestBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
 // GetRoomsRoomIDInternalServerErrorBody get rooms room ID internal server error body
 //
 // swagger:model GetRoomsRoomIDInternalServerErrorBody
@@ -125,6 +88,46 @@ func (o *GetRoomsRoomIDInternalServerErrorBody) MarshalBinary() ([]byte, error) 
 // UnmarshalBinary interface implementation
 func (o *GetRoomsRoomIDInternalServerErrorBody) UnmarshalBinary(b []byte) error {
 	var res GetRoomsRoomIDInternalServerErrorBody
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}
+
+// GetRoomsRoomIDNotFoundBody get rooms room ID not found body
+//
+// swagger:model GetRoomsRoomIDNotFoundBody
+type GetRoomsRoomIDNotFoundBody struct {
+
+	// May be null.
+	Entity string `json:"entity,omitempty"`
+
+	// May be null.
+	Identifer string `json:"identifer,omitempty"`
+}
+
+// Validate validates this get rooms room ID not found body
+func (o *GetRoomsRoomIDNotFoundBody) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this get rooms room ID not found body based on context it is used
+func (o *GetRoomsRoomIDNotFoundBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *GetRoomsRoomIDNotFoundBody) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *GetRoomsRoomIDNotFoundBody) UnmarshalBinary(b []byte) error {
+	var res GetRoomsRoomIDNotFoundBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

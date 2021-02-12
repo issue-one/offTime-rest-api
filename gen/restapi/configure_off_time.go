@@ -19,6 +19,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/issue-one/offTime-rest-api/gen/restapi/operations"
+	"github.com/issue-one/offTime-rest-api/internal/repositories"
 	"github.com/issue-one/offTime-rest-api/internal/repositories/mock"
 )
 
@@ -51,7 +52,7 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// operations.PutUsersUsernamePictureMaxParseMemory = 32 << 20
 
-	userRepo := mock.NewMockUserRepositories()
+	userRepo := mock.NewMockUserRepository()
 	{
 		var ok bool
 		imageStoragePath, ok = os.LookupEnv("IMAGE_STORAGE_PATH")
@@ -63,6 +64,7 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			imageServingRoute = "/images/"
 		}
 	}
+	roomRepo := mock.NewMockRoomRepository()
 
 	// USER handlers
 	api.PutUsersUsernameHandler = operations.PutUsersUsernameHandlerFunc(
@@ -79,8 +81,8 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 
 			occupied, err := userRepo.IsUsernameOccupied(ctx, params.Username)
 			if err != nil {
-				return operations.NewPutUsersUsernameInternalServerError().WithPayload(
-					&operations.PutUsersUsernameInternalServerErrorBody{Message: err.Error()},
+				return operations.NewPatchUsersUsernameInternalServerError().WithPayload(
+					&operations.PatchUsersUsernameInternalServerErrorBody{Message: err.Error()},
 				)
 			}
 			if occupied {
@@ -114,15 +116,20 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 	api.GetUsersUsernameHandler = operations.GetUsersUsernameHandlerFunc(
 		func(params operations.GetUsersUsernameParams) middleware.Responder {
 			user, err := userRepo.GetUser(params.HTTPRequest.Context(), params.Username)
-			if err != nil {
+			switch err {
+			case nil:
+
+				if user.PictureURL != "" {
+					user.PictureURL = urlFromFilename(user.PictureURL)
+				}
+				return operations.NewGetUsersUsernameOK().WithPayload(user)
+			case repositories.ErrUserNotFound:
+				return operations.NewGetUsersUsernameNotFound()
+			default:
 				return operations.NewGetUsersUsernameInternalServerError().WithPayload(
 					&operations.GetUsersUsernameInternalServerErrorBody{Message: err.Error()},
 				)
 			}
-			if user.PictureURL != "" {
-				user.PictureURL = urlFromFilename(user.PictureURL)
-			}
-			return operations.NewGetUsersUsernameOK().WithPayload(user)
 		})
 
 	api.GetUsersHandler = operations.GetUsersHandlerFunc(
@@ -161,8 +168,8 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			if params.Body.Email != "" {
 				occupied, err := userRepo.IsEmailOccupied(ctx, params.Body.Email.String(), "")
 				if err != nil {
-					return operations.NewPatchUsersUsernameBadRequest().WithPayload(
-						&operations.PatchUsersUsernameBadRequestBody{Message: err.Error()},
+					return operations.NewPatchUsersUsernameInternalServerError().WithPayload(
+						&operations.PatchUsersUsernameInternalServerErrorBody{Message: err.Error()},
 					)
 				}
 				if occupied {
@@ -172,19 +179,24 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 				}
 			}
 			user, err := userRepo.UpdateUser(ctx, params.Username, params.Body)
-			if err != nil {
+			switch err {
+			case nil:
+				if user.PictureURL != "" {
+					user.PictureURL = urlFromFilename(user.PictureURL)
+				}
+				return operations.NewPatchUsersUsernameOK().WithPayload(user)
+			case repositories.ErrUserNotFound:
+				return operations.NewPatchUsersUsernameNotFound()
+			default:
 				return operations.NewPatchUsersUsernameInternalServerError().WithPayload(
 					&operations.PatchUsersUsernameInternalServerErrorBody{Message: err.Error()},
 				)
 			}
-			if user.PictureURL != "" {
-				user.PictureURL = urlFromFilename(user.PictureURL)
-			}
-			return operations.NewPatchUsersUsernameOK().WithPayload(user)
 		})
 
 	api.PutUsersUsernamePictureHandler = operations.PutUsersUsernamePictureHandlerFunc(
 		func(params operations.PutUsersUsernamePictureParams) middleware.Responder {
+			// save the image temporarily
 			tempFile, extension, err := saveImageFromRequest(params.Image)
 			defer func() {
 				_ = os.Remove(tempFile.Name())
@@ -206,29 +218,34 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 					},
 				)
 			}
+			// update user
 			user, err := userRepo.SetImage(
 				params.HTTPRequest.Context(),
 				params.Username,
 				generateFileNameForStorage(params.Username+"."+extension, "user"),
 			)
-			if err != nil {
+			switch err {
+			case nil:
+				err = saveTempImagePermanentlyToPath(tempFile, imageStoragePath+user.PictureURL)
+				if err != nil {
+					return operations.NewPutUsersUsernamePictureInternalServerError().WithPayload(
+						&operations.PutUsersUsernamePictureInternalServerErrorBody{
+							Message: err.Error(),
+						},
+					)
+				}
+				return operations.NewPutUsersUsernamePictureOK().WithPayload(
+					urlFromFilename(user.PictureURL),
+				)
+			case repositories.ErrUserNotFound:
+				return operations.NewPutUsersUsernamePictureNotFound()
+			default:
 				return operations.NewPutUsersUsernamePictureInternalServerError().WithPayload(
 					&operations.PutUsersUsernamePictureInternalServerErrorBody{
 						Message: err.Error(),
 					},
 				)
 			}
-			err = saveTempImagePermanentlyToPath(tempFile, imageStoragePath+user.PictureURL)
-			if err != nil {
-				return operations.NewPutUsersUsernamePictureInternalServerError().WithPayload(
-					&operations.PutUsersUsernamePictureInternalServerErrorBody{
-						Message: err.Error(),
-					},
-				)
-			}
-			return operations.NewPutUsersUsernamePictureOK().WithPayload(
-				urlFromFilename(user.PictureURL),
-			)
 		})
 
 	api.DeleteUsersUsernameHandler = operations.DeleteUsersUsernameHandlerFunc(
@@ -260,16 +277,76 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 	}
 
 	// ROOM handlers
-	if api.GetRoomsHandler == nil {
-		api.GetRoomsHandler = operations.GetRoomsHandlerFunc(func(params operations.GetRoomsParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetRooms has not yet been implemented")
+	api.GetRoomsHandler = operations.GetRoomsHandlerFunc(
+		func(params operations.GetRoomsParams) middleware.Responder {
+			// TODO: check if min limit and offset is auto enforced
+			rooms, totalCount, err := roomRepo.GetAllRooms(params.HTTPRequest.Context(), *params.Limit, *params.Offset)
+			if err != nil {
+				return operations.NewGetRoomsInternalServerError().WithPayload(
+					&operations.GetRoomsInternalServerErrorBody{
+						Message: err.Error(),
+					},
+				)
+			}
+			return operations.NewGetRoomsOK().WithPayload(
+				&operations.GetRoomsOKBody{
+					Items:      rooms,
+					TotalCount: int64(totalCount),
+				},
+			)
 		})
-	}
-	if api.GetRoomsRoomIDHandler == nil {
-		api.GetRoomsRoomIDHandler = operations.GetRoomsRoomIDHandlerFunc(func(params operations.GetRoomsRoomIDParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetRoomsRoomID has not yet been implemented")
+
+	api.GetRoomsRoomIDHandler = operations.GetRoomsRoomIDHandlerFunc(
+		func(params operations.GetRoomsRoomIDParams) middleware.Responder {
+			room, err := roomRepo.GetRoom(params.HTTPRequest.Context(), params.RoomID)
+			switch err {
+			case nil:
+				return operations.NewGetRoomsRoomIDOK().WithPayload(room)
+			case repositories.ErrRoomNotFound:
+				return operations.NewGetRoomsRoomIDNotFound()
+			default:
+				return operations.NewGetRoomsRoomIDInternalServerError().WithPayload(
+					&operations.GetRoomsRoomIDInternalServerErrorBody{
+						Message: err.Error(),
+					},
+				)
+			}
+		},
+	)
+
+	api.GetUsersUsernameRoomHistoryHandler = operations.GetUsersUsernameRoomHistoryHandlerFunc(
+		func(params operations.GetUsersUsernameRoomHistoryParams) middleware.Responder {
+			user, err := userRepo.GetUser(params.HTTPRequest.Context(), params.Username)
+			switch err {
+			case nil:
+			case repositories.ErrUserNotFound:
+				return operations.NewGetUsersUsernameRoomHistoryNotFound().WithPayload(
+					&operations.GetUsersUsernameRoomHistoryNotFoundBody{
+						Entity:    "User",
+						Identifer: params.Username,
+					},
+				)
+			default:
+				return operations.NewGetUsersUsernameRoomHistoryInternalServerError().WithPayload(
+					&operations.GetUsersUsernameRoomHistoryInternalServerErrorBody{Message: err.Error()},
+				)
+			}
+			rooms, err := roomRepo.GetMultipleRooms(params.HTTPRequest.Context(), user.RoomHistory)
+			switch err {
+			case nil:
+				return operations.NewGetUsersUsernameRoomHistoryOK().WithPayload(rooms)
+			case repositories.ErrRoomNotFound:
+				return operations.NewGetUsersUsernameRoomHistoryNotFound().WithPayload(
+					&operations.GetUsersUsernameRoomHistoryNotFoundBody{
+						Entity: "Room",
+					},
+				)
+			default:
+				return operations.NewGetUsersUsernameRoomHistoryInternalServerError().WithPayload(
+					&operations.GetUsersUsernameRoomHistoryInternalServerErrorBody{Message: err.Error()},
+				)
+			}
 		})
-	}
 
 	api.PreServerShutdown = func() {}
 
@@ -312,6 +389,7 @@ var imageStoragePath string
 var imageServingRoute string
 
 func fileServerMiddleware(next http.Handler) http.Handler {
+	
 	fileServer := http.StripPrefix(imageServingRoute, http.FileServer(http.Dir(imageStoragePath)))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, imageServingRoute) {

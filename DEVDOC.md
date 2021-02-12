@@ -20,8 +20,9 @@
 - [ ] GET       /users/{username}/usageHistory 
 - [ ] POST      /users/{username}/usageHistory 
 - [ ] DELETE    /users/{username}/usageHistory 
-- [ ] GET       /rooms
-- [ ] GET       /rooms/{roomID}
+- [x] GET    /users/{username}/roomHistory 
+- [x] GET       /rooms
+- [x] GET       /rooms/{roomID}
 
 ### CRUDs
 

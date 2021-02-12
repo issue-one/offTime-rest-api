@@ -168,3 +168,43 @@ func (o *PatchUsersUsernameInternalServerErrorBody) UnmarshalBinary(b []byte) er
 	*o = res
 	return nil
 }
+
+// PatchUsersUsernameNotFoundBody patch users username not found body
+//
+// swagger:model PatchUsersUsernameNotFoundBody
+type PatchUsersUsernameNotFoundBody struct {
+
+	// May be null.
+	Entity string `json:"entity,omitempty"`
+
+	// May be null.
+	Identifer string `json:"identifer,omitempty"`
+}
+
+// Validate validates this patch users username not found body
+func (o *PatchUsersUsernameNotFoundBody) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this patch users username not found body based on context it is used
+func (o *PatchUsersUsernameNotFoundBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *PatchUsersUsernameNotFoundBody) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *PatchUsersUsernameNotFoundBody) UnmarshalBinary(b []byte) error {
+	var res PatchUsersUsernameNotFoundBody
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}

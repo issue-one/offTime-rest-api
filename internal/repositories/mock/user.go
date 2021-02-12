@@ -15,7 +15,7 @@ type userRepo struct {
 	users map[string]*models.User
 }
 
-func NewMockUserRepositories() repositories.User {
+func NewMockUserRepository() repositories.User {
 	return userRepo{
 		mutex: &sync.RWMutex{},
 		users: map[string]*models.User{
@@ -26,7 +26,7 @@ func NewMockUserRepositories() repositories.User {
 	}
 }
 
-func NewMockUserRepositoriesCopyEntities() repositories.User {
+func NewMockUserRepositoryCopyEntities() repositories.User {
 	user01Copy := User01
 	user02Copy := User02
 	user03Copy := User03
@@ -40,7 +40,7 @@ func NewMockUserRepositoriesCopyEntities() repositories.User {
 	}
 }
 
-func NewMockUserRepositoriesEmpty() repositories.User {
+func NewMockUserRepositoryEmpty() repositories.User {
 	return userRepo{
 		mutex: &sync.RWMutex{},
 		users: make(map[string]*models.User),

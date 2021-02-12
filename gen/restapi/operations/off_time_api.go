@@ -61,6 +61,9 @@ func NewOffTimeAPI(spec *loads.Document) *OffTimeAPI {
 		GetUsersUsernameHandler: GetUsersUsernameHandlerFunc(func(params GetUsersUsernameParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUsersUsername has not yet been implemented")
 		}),
+		GetUsersUsernameRoomHistoryHandler: GetUsersUsernameRoomHistoryHandlerFunc(func(params GetUsersUsernameRoomHistoryParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetUsersUsernameRoomHistory has not yet been implemented")
+		}),
 		GetUsersUsernameUsageHistoryHandler: GetUsersUsernameUsageHistoryHandlerFunc(func(params GetUsersUsernameUsageHistoryParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUsersUsernameUsageHistory has not yet been implemented")
 		}),
@@ -127,6 +130,8 @@ type OffTimeAPI struct {
 	GetUsersHandler GetUsersHandler
 	// GetUsersUsernameHandler sets the operation handler for the get users username operation
 	GetUsersUsernameHandler GetUsersUsernameHandler
+	// GetUsersUsernameRoomHistoryHandler sets the operation handler for the get users username room history operation
+	GetUsersUsernameRoomHistoryHandler GetUsersUsernameRoomHistoryHandler
 	// GetUsersUsernameUsageHistoryHandler sets the operation handler for the get users username usage history operation
 	GetUsersUsernameUsageHistoryHandler GetUsersUsernameUsageHistoryHandler
 	// PatchUsersUsernameHandler sets the operation handler for the patch users username operation
@@ -234,6 +239,9 @@ func (o *OffTimeAPI) Validate() error {
 	}
 	if o.GetUsersUsernameHandler == nil {
 		unregistered = append(unregistered, "GetUsersUsernameHandler")
+	}
+	if o.GetUsersUsernameRoomHistoryHandler == nil {
+		unregistered = append(unregistered, "GetUsersUsernameRoomHistoryHandler")
 	}
 	if o.GetUsersUsernameUsageHistoryHandler == nil {
 		unregistered = append(unregistered, "GetUsersUsernameUsageHistoryHandler")
@@ -364,6 +372,10 @@ func (o *OffTimeAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/users/{username}"] = NewGetUsersUsername(o.context, o.GetUsersUsernameHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/users/{username}/roomHistory"] = NewGetUsersUsernameRoomHistory(o.context, o.GetUsersUsernameRoomHistoryHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

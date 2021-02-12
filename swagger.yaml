@@ -128,6 +128,23 @@ paths:
             type: string
             format: url
             example: http://pictureserver.com/picture102.png
+  '/users/{username}/roomHistory':
+    parameters:
+      - $ref: '#/parameters/usernameParam'
+    get:
+      produces:
+        - application/json
+      responses:
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/ServerError'
+        '200':
+          description: Success gettin all Room history of User.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Room'
   '/users/{username}/usageHistory':
     parameters:
       - $ref: '#/parameters/usernameParam'
@@ -219,8 +236,8 @@ paths:
       responses:
         '500':
           $ref: '#/responses/ServerError'
-        '400':
-          $ref: '#/responses/BadInput'
+        '404':
+          $ref: '#/responses/NotFound'
         '200':
           description: Success GETting room under roomID.
           schema:
@@ -344,16 +361,9 @@ definitions:
         example: lula34
         type: string
       userUsages:
-        description: rank of a user
-        type: array
-        items:
-          properties:
-            totalTime:
-              description: Duration in seconds.
-              type: integer
-            username:
-              type: string
-          type: object
+        type: object
+        additionalProperties:
+          type: integer
 parameters:
   usernameParam:
     in: path
@@ -392,6 +402,14 @@ responses:
           type: string
   NotFound:
     description: Entity not found.
+    schema:
+      properties:
+        entity:
+          type: string
+          description: May be null.
+        identifer:
+          description: May be null.
+          type: string
   BadInput:
     description: Illegal input for operation.
     schema:

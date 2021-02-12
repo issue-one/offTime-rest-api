@@ -99,6 +99,46 @@ func (o *GetUsersInternalServerErrorBody) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
+// GetUsersNotFoundBody get users not found body
+//
+// swagger:model GetUsersNotFoundBody
+type GetUsersNotFoundBody struct {
+
+	// May be null.
+	Entity string `json:"entity,omitempty"`
+
+	// May be null.
+	Identifer string `json:"identifer,omitempty"`
+}
+
+// Validate validates this get users not found body
+func (o *GetUsersNotFoundBody) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this get users not found body based on context it is used
+func (o *GetUsersNotFoundBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *GetUsersNotFoundBody) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *GetUsersNotFoundBody) UnmarshalBinary(b []byte) error {
+	var res GetUsersNotFoundBody
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}
+
 // GetUsersOKBody get users o k body
 //
 // swagger:model GetUsersOKBody

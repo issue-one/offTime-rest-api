@@ -7,7 +7,6 @@ package models
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -52,8 +51,8 @@ type Room struct {
 	// Format: date-time
 	UpdatedAt strfmt.DateTime `json:"updatedAt,omitempty"`
 
-	// rank of a user
-	UserUsages []*RoomUserUsagesItems0 `json:"userUsages"`
+	// user usages
+	UserUsages map[string]int64 `json:"userUsages,omitempty"`
 }
 
 // Validate validates this room
@@ -77,10 +76,6 @@ func (m *Room) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateUpdatedAt(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateUserUsages(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -150,59 +145,8 @@ func (m *Room) validateUpdatedAt(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Room) validateUserUsages(formats strfmt.Registry) error {
-	if swag.IsZero(m.UserUsages) { // not required
-		return nil
-	}
-
-	for i := 0; i < len(m.UserUsages); i++ {
-		if swag.IsZero(m.UserUsages[i]) { // not required
-			continue
-		}
-
-		if m.UserUsages[i] != nil {
-			if err := m.UserUsages[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("userUsages" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-// ContextValidate validate this room based on the context it is used
+// ContextValidate validates this room based on context it is used
 func (m *Room) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.contextValidateUserUsages(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *Room) contextValidateUserUsages(ctx context.Context, formats strfmt.Registry) error {
-
-	for i := 0; i < len(m.UserUsages); i++ {
-
-		if m.UserUsages[i] != nil {
-			if err := m.UserUsages[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("userUsages" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
 	return nil
 }
 
@@ -217,46 +161,6 @@ func (m *Room) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *Room) UnmarshalBinary(b []byte) error {
 	var res Room
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// RoomUserUsagesItems0 room user usages items0
-//
-// swagger:model RoomUserUsagesItems0
-type RoomUserUsagesItems0 struct {
-
-	// Duration in seconds.
-	TotalTime int64 `json:"totalTime,omitempty"`
-
-	// username
-	Username string `json:"username,omitempty"`
-}
-
-// Validate validates this room user usages items0
-func (m *RoomUserUsagesItems0) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this room user usages items0 based on context it is used
-func (m *RoomUserUsagesItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *RoomUserUsagesItems0) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *RoomUserUsagesItems0) UnmarshalBinary(b []byte) error {
-	var res RoomUserUsagesItems0
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

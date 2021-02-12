@@ -57,42 +57,42 @@ func (o *GetRoomsRoomIDOK) WriteResponse(rw http.ResponseWriter, producer runtim
 	}
 }
 
-// GetRoomsRoomIDBadRequestCode is the HTTP code returned for type GetRoomsRoomIDBadRequest
-const GetRoomsRoomIDBadRequestCode int = 400
+// GetRoomsRoomIDNotFoundCode is the HTTP code returned for type GetRoomsRoomIDNotFound
+const GetRoomsRoomIDNotFoundCode int = 404
 
-/*GetRoomsRoomIDBadRequest Illegal input for operation.
+/*GetRoomsRoomIDNotFound Entity not found.
 
-swagger:response getRoomsRoomIdBadRequest
+swagger:response getRoomsRoomIdNotFound
 */
-type GetRoomsRoomIDBadRequest struct {
+type GetRoomsRoomIDNotFound struct {
 
 	/*
 	  In: Body
 	*/
-	Payload *GetRoomsRoomIDBadRequestBody `json:"body,omitempty"`
+	Payload *GetRoomsRoomIDNotFoundBody `json:"body,omitempty"`
 }
 
-// NewGetRoomsRoomIDBadRequest creates GetRoomsRoomIDBadRequest with default headers values
-func NewGetRoomsRoomIDBadRequest() *GetRoomsRoomIDBadRequest {
+// NewGetRoomsRoomIDNotFound creates GetRoomsRoomIDNotFound with default headers values
+func NewGetRoomsRoomIDNotFound() *GetRoomsRoomIDNotFound {
 
-	return &GetRoomsRoomIDBadRequest{}
+	return &GetRoomsRoomIDNotFound{}
 }
 
-// WithPayload adds the payload to the get rooms room Id bad request response
-func (o *GetRoomsRoomIDBadRequest) WithPayload(payload *GetRoomsRoomIDBadRequestBody) *GetRoomsRoomIDBadRequest {
+// WithPayload adds the payload to the get rooms room Id not found response
+func (o *GetRoomsRoomIDNotFound) WithPayload(payload *GetRoomsRoomIDNotFoundBody) *GetRoomsRoomIDNotFound {
 	o.Payload = payload
 	return o
 }
 
-// SetPayload sets the payload to the get rooms room Id bad request response
-func (o *GetRoomsRoomIDBadRequest) SetPayload(payload *GetRoomsRoomIDBadRequestBody) {
+// SetPayload sets the payload to the get rooms room Id not found response
+func (o *GetRoomsRoomIDNotFound) SetPayload(payload *GetRoomsRoomIDNotFoundBody) {
 	o.Payload = payload
 }
 
 // WriteResponse to the client
-func (o *GetRoomsRoomIDBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+func (o *GetRoomsRoomIDNotFound) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.WriteHeader(400)
+	rw.WriteHeader(404)
 	if o.Payload != nil {
 		payload := o.Payload
 		if err := producer.Produce(rw, payload); err != nil {
