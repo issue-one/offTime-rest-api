@@ -7,10 +7,10 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/uuid"
 	internalModels "github.com/issue-one/offTime-rest-api/internal/models"
 	"github.com/issue-one/offTime-rest-api/internal/repositories"
 	. "github.com/issue-one/offTime-rest-api/internal/repositories/mock"
+	uuid "github.com/satori/go.uuid"
 )
 
 func RoomRepositoryTestSuite(
@@ -55,7 +55,7 @@ func RoomRepositoryTestSuite(
 		{
 			name: "GetRoom - it throws ErrRoomNotFound if Room not found",
 			test: func(t *testing.T, repo repositories.Room) {
-				_, err := repo.GetRoom(ctx, strfmt.UUID(uuid.New().String()))
+				_, err := repo.GetRoom(ctx, strfmt.UUID(uuid.NewV4().String()))
 				if err == nil || err != repositories.ErrRoomNotFound {
 					t.Errorf("failed: err == %v", err)
 				}
@@ -123,7 +123,7 @@ func RoomRepositoryTestSuite(
 		{
 			name: "UpdateRoom - it throws ErrRoomNotFound if Room not found",
 			test: func(t *testing.T, repo repositories.Room) {
-				_, err := repo.UpdateRoom(ctx, strfmt.UUID(uuid.New().String()), &internalModels.UpdateRoomInput{
+				_, err := repo.UpdateRoom(ctx, strfmt.UUID(uuid.NewV4().String()), &internalModels.UpdateRoomInput{
 					Name: testRoomname,
 				})
 				if err == nil || err != repositories.ErrRoomNotFound {
@@ -203,7 +203,7 @@ func RoomRepositoryTestSuite(
 		{
 			name: "GetMultipleRooms - it throws ErrRoomNotFound if Room not found",
 			test: func(t *testing.T, repo repositories.Room) {
-				_, err := repo.GetMultipleRooms(ctx, []strfmt.UUID{Room01.ID, strfmt.UUID(uuid.New().String()), Room02.ID})
+				_, err := repo.GetMultipleRooms(ctx, []strfmt.UUID{Room01.ID, strfmt.UUID(uuid.NewV4().String()), Room02.ID})
 				if err == nil || err != repositories.ErrRoomNotFound {
 					t.Errorf("failed: err == %v", err)
 				}
@@ -245,7 +245,7 @@ func RoomRepositoryTestSuite(
 		{
 			name: "UpdateRoomUserUsages - it throws ErrRoomNotFound if Room not found",
 			test: func(t *testing.T, repo repositories.Room) {
-				_, err := repo.UpdateRoomUserUsages(ctx, strfmt.UUID(uuid.New().String()), &map[string]int64{
+				_, err := repo.UpdateRoomUserUsages(ctx, strfmt.UUID(uuid.NewV4().String()), &map[string]int64{
 					User01.Username: int64(time.Second * 100),
 				})
 				if err == nil || err != repositories.ErrRoomNotFound {

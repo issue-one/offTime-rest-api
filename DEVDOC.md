@@ -2,8 +2,9 @@
 
 ## To-do
 
-- [ ] v4 UUIDs
+- [x] v4 UUIDs
 - [x] Image serving/uploading
+- [x] websockets
 
 ## design-doc
 

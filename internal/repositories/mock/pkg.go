@@ -4,13 +4,13 @@ import (
 	"time"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/google/uuid"
 	"github.com/issue-one/offTime-rest-api/gen/models"
+	uuid "github.com/satori/go.uuid"
 )
 
-var room1Id = strfmt.UUID(uuid.New().String())
-var room2Id = strfmt.UUID(uuid.New().String())
-var room3Id = strfmt.UUID(uuid.New().String())
+var room1Id = strfmt.UUID(uuid.NewV4().String())
+var room2Id = strfmt.UUID(uuid.NewV4().String())
+var room3Id = strfmt.UUID(uuid.NewV4().String())
 
 var (
 	User01 = models.User{

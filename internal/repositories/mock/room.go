@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/google/uuid"
 	"github.com/issue-one/offTime-rest-api/gen/models"
 	internalModels "github.com/issue-one/offTime-rest-api/internal/models"
 	"github.com/issue-one/offTime-rest-api/internal/repositories"
+	uuid "github.com/satori/go.uuid"
 )
 
 type roomRepo struct {
@@ -55,7 +55,7 @@ func (r roomRepo) CreateRoom(ctx context.Context, username string, name string) 
 	newRoom := models.Room{
 		Name:         name,
 		HostUsername: username,
-		ID:           strfmt.UUID(uuid.New().String()),
+		ID:           strfmt.UUID(uuid.NewV4().String()),
 		CreatedAt:    strfmt.DateTime(createdAt),
 		UpdatedAt:    strfmt.DateTime(createdAt),
 	}

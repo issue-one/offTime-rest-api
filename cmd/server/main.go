@@ -58,10 +58,11 @@ func main() {
 		portString = "8080"
 	}
 
-	server.Port, err = strconv.Atoi(portString)
+	port, err := strconv.Atoi(portString)
 	if err != nil {
 		panic(fmt.Sprintf("Unable to parse port string: %v", portString))
 	}
+	server.Port = port
 
 	server.ConfigureAPI()
 

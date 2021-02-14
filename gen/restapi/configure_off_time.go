@@ -5,6 +5,7 @@ package restapi
 import (
 	"crypto/tls"
 	"fmt"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"log"
@@ -16,9 +17,10 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/google/uuid"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/issue-one/offTime-rest-api/gen/restapi/operations"
+	"github.com/issue-one/offTime-rest-api/internal/delivery/ws"
 	"github.com/issue-one/offTime-rest-api/internal/repositories"
 	"github.com/issue-one/offTime-rest-api/internal/repositories/mock"
 )
@@ -27,6 +29,7 @@ import (
 
 func configureFlags(api *operations.OffTimeAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
+
 }
 
 func configureAPI(api *operations.OffTimeAPI) http.Handler {
@@ -265,11 +268,13 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			return middleware.NotImplemented("operation operations.GetUsersUsernameUsageHistory has not yet been implemented")
 		})
 	}
+
 	if api.PostUsersUsernameUsageHistoryHandler == nil {
 		api.PostUsersUsernameUsageHistoryHandler = operations.PostUsersUsernameUsageHistoryHandlerFunc(func(params operations.PostUsersUsernameUsageHistoryParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.PostUsersUsernameUsageHistory has not yet been implemented")
 		})
 	}
+
 	if api.DeleteUsersUsernameUsageHistoryHandler == nil {
 		api.DeleteUsersUsernameUsageHistoryHandler = operations.DeleteUsersUsernameUsageHistoryHandlerFunc(func(params operations.DeleteUsersUsernameUsageHistoryParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.DeleteUsersUsernameUsageHistory has not yet been implemented")
@@ -348,11 +353,112 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			}
 		})
 
-	api.PreServerShutdown = func() {}
+	hub, wsHandler := ws.NewHub()
+
+	var wsMiddleware = func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/ws":
+				wsHandler.ServeHTTP(w, r)
+				// api.Logger(fmt.Sprintf("wsMiddleware: %v", hub.Rooms))
+				break
+			case "/":
+				s := struct {
+					Addr string
+				}{
+					Addr: "localhost:8080",
+				}
+				err := doc.ExecuteTemplate(w, "root", s)
+				if err != nil {
+					log.Fatal(err)
+				}
+				break
+			default:
+				next.ServeHTTP(w, r)
+			}
+		})
+	}
+
+	hub.Listen(ws.ConnectedEvent, func(client *ws.Client, msg interface{}) {
+		api.Logger(fmt.Sprintf("client connected at id: %v", client.ID))
+	})
+	hub.Listen(ws.CloseEvent, func(client *ws.Client, msg interface{}) {
+		api.Logger(fmt.Sprintf("client at id: %v left", client.ID))
+	})
+
+	hub.MesssageListener = func(client *ws.Client, event string, msg interface{}) {
+		api.Logger(fmt.Sprintf("client at id: (%v) sent message: %v", client.ID, msg))
+	}
+
+	hub.Listen("echo", func(client *ws.Client, msg interface{}) {
+		api.Logger(fmt.Sprintf("echo: %v", msg))
+		client.Emit("echo", msg)
+	})
+	/* gosf.Listen("createRoom", func(client *gosf.Client, request *gosf.Request) *gosf.Message {
+		createRoomMessage := struct {
+			username string `json:"username,omitempty"`
+			roomName string `json:"room_name,omitempty"`
+		}{}
+		type response struct {
+			code    int         `json:"code,omitempty"`
+			message interface{} `json:"message,omitempty"`
+		}
+		gosf.MapToStruct(request.Message.Body, createRoomMessage)
+		if createRoomMessage.username == "" {
+			return gosf.NewFailureMessage("errorCreatingRoom", gosf.StructToMap(response{
+				code:    400,
+				message: "No username field found in request.",
+			}))
+		}
+		if createRoomMessage.username == "" {
+			return gosf.NewFailureMessage("errorCreatingRoom", gosf.StructToMap(response{
+				code:    400,
+				message: "No username field found in request.",
+			}))
+		}
+		found, err := userRepo.IsUsernameOccupied(context.TODO(), createRoomMessage.username)
+		if err != nil {
+			return gosf.NewFailureMessage("errorCreatingRoom", gosf.StructToMap(response{
+				code:    500,
+				message: "Internal server error: " + err.Error(),
+			}))
+		}
+		if !found {
+			return gosf.NewFailureMessage("errorCreatingRoom", gosf.StructToMap(response{
+				code:    404,
+				message: "No user found under given username: " + createRoomMessage.username,
+			}))
+		}
+
+		room, err := roomRepo.CreateRoom(context.TODO(), createRoomMessage.username, createRoomMessage.roomName)
+		if err != nil {
+			return gosf.NewFailureMessage("errorCreatingRoom", gosf.StructToMap(response{
+				code:    500,
+				message: "Internal server error: " + err.Error(),
+			}))
+		}
+		client.Join(room.ID.String())
+		return gosf.NewSuccessMessage("successCreatingRoom", map[string]interface{}{
+			"code": 200,
+			"data": fmt.Sprint(room),
+		})
+	}) */
+
+	api.PreServerShutdown = func() {
+		hub.Shutdown()
+	}
 
 	api.ServerShutdown = func() {}
 
-	return setupGlobalMiddleware(api)(api.Serve(setupMiddlewares(api)))
+	return loggerMiddleware(api,
+		fileServerMiddleware(
+			wsMiddleware(
+				api.Serve(func(next http.Handler) http.Handler {
+					return next
+				}),
+			),
+		),
+	)
 }
 
 // The TLS configuration before HTTPS server starts.
@@ -369,13 +475,6 @@ var serverAddress string
 func configureServer(s *http.Server, scheme, addr string) {
 	serverAddress = scheme + "://" + addr
 }
-
-// The middleware configuration is for the handler executors. These do not apply to the swagger.json document.
-// The middleware executes after routing but before authentication, binding and validation.
-func setupMiddlewares(api *operations.OffTimeAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler { return next }
-}
-
 func loggerMiddleware(api *operations.OffTimeAPI, next http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(rw http.ResponseWriter, r *http.Request) {
@@ -389,7 +488,7 @@ var imageStoragePath string
 var imageServingRoute string
 
 func fileServerMiddleware(next http.Handler) http.Handler {
-	
+
 	fileServer := http.StripPrefix(imageServingRoute, http.FileServer(http.Dir(imageStoragePath)))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, imageServingRoute) {
@@ -398,14 +497,6 @@ func fileServerMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		}
 	})
-}
-
-// The middleware configuration happens before anything, this middleware also applies to serving the swagger.json document.
-// So this is a good place to plug in a panic handling middleware, logging and metrics.
-func setupGlobalMiddleware(api *operations.OffTimeAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return loggerMiddleware(api, fileServerMiddleware(next))
-	}
 }
 
 // TODO: research if saving to temp file is better than holding in memory
@@ -466,9 +557,131 @@ func saveTempImagePermanentlyToPath(tmpFile *os.File, path string) error {
 }
 
 func generateFileNameForStorage(fileName, prefix string) string {
-	return prefix + "." + uuid.New().String() + "." + fileName
+	return prefix + "." + uuid.NewV4().String() + "." + fileName
 }
 
 func urlFromFilename(fileName string) string {
 	return serverAddress + imageServingRoute + url.PathEscape(fileName)
 }
+
+var doc = template.Must(template.New("root").Parse(html))
+
+const (
+	html = `
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Chat Example</title>
+    <script type="text/javascript">
+        window.onload = function () {
+            var conn;
+            var msg = document.getElementById("msg");
+            var evt = document.getElementById("evt");
+            var log = document.getElementById("log");
+            if (!msg || !evt || !log) {
+                console.error("elements not found")
+            }
+
+            function appendLog(item) {
+                var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
+                log.appendChild(item);
+                if (doScroll) {
+                    log.scrollTop = log.scrollHeight - log.clientHeight;
+                }
+            }
+
+            document.getElementById("form").onsubmit = function () {
+                try {
+                    if (!conn) {
+                        console.log("no connection found");
+                        return false;
+                    }
+                    if (!msg.value) {
+                        console.log("msg box empty");
+                        return false;
+                    }
+                    if (!evt.value) {
+                        console.log("evt box empty");
+                        return false;
+                    }
+                    conn.send(JSON.stringify({ event: evt.value, data: msg.value }));
+                } catch (e) {
+                    console.error("error")
+                    console.error(e)
+                }
+                return false;
+            };
+
+            if (window["WebSocket"]) {
+                conn = new WebSocket("ws://" + document.location.host + "/ws");
+                conn.onclose = function (evt) {
+                    var item = document.createElement("div");
+                    item.innerHTML = "<b>Connection closed.</b>";
+                    appendLog(item);
+                };
+                conn.onmessage = function (evt) {
+                    // var message = JSON.parse(evt);
+                    console.log("msg recieved");
+                    console.log(evt)
+                    var item = document.createElement("div");
+                    item.innerText = evt.data;
+                    appendLog(item);
+                };
+            } else {
+                var item = document.createElement("div");
+                item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
+                appendLog(item);
+            }
+        };
+    </script>
+    <style type="text/css">
+        html {
+            overflow: hidden;
+        }
+
+        body {
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background: gray;
+        }
+
+        #log {
+            background: white;
+            margin: 0;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            position: absolute;
+            top: 0.5em;
+            left: 0.5em;
+            right: 0.5em;
+            bottom: 3em;
+            overflow: auto;
+        }
+
+        #form {
+            padding: 0 0.5em 0 0.5em;
+            margin: 0;
+            position: absolute;
+            bottom: 1em;
+            left: 0px;
+            width: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="log"></div>
+    <form id="form">
+        <input type="submit" value="Send" />
+        <input style="display: inline-block;" type="text" id="evt" size="64" autofocus />
+        <input style="display: inline-block;" type="text" id="msg" size="64" autofocus />
+    </form>
+</body>
+
+</html>
+`
+)
