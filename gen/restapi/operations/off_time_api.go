@@ -46,6 +46,9 @@ func NewOffTimeAPI(spec *loads.Document) *OffTimeAPI {
 		DeleteUsersUsernameHandler: DeleteUsersUsernameHandlerFunc(func(params DeleteUsersUsernameParams) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteUsersUsername has not yet been implemented")
 		}),
+		DeleteUsersUsernameRoomHistoryHandler: DeleteUsersUsernameRoomHistoryHandlerFunc(func(params DeleteUsersUsernameRoomHistoryParams) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteUsersUsernameRoomHistory has not yet been implemented")
+		}),
 		DeleteUsersUsernameUsageHistoryHandler: DeleteUsersUsernameUsageHistoryHandlerFunc(func(params DeleteUsersUsernameUsageHistoryParams) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteUsersUsernameUsageHistory has not yet been implemented")
 		}),
@@ -120,6 +123,8 @@ type OffTimeAPI struct {
 
 	// DeleteUsersUsernameHandler sets the operation handler for the delete users username operation
 	DeleteUsersUsernameHandler DeleteUsersUsernameHandler
+	// DeleteUsersUsernameRoomHistoryHandler sets the operation handler for the delete users username room history operation
+	DeleteUsersUsernameRoomHistoryHandler DeleteUsersUsernameRoomHistoryHandler
 	// DeleteUsersUsernameUsageHistoryHandler sets the operation handler for the delete users username usage history operation
 	DeleteUsersUsernameUsageHistoryHandler DeleteUsersUsernameUsageHistoryHandler
 	// GetRoomsHandler sets the operation handler for the get rooms operation
@@ -224,6 +229,9 @@ func (o *OffTimeAPI) Validate() error {
 
 	if o.DeleteUsersUsernameHandler == nil {
 		unregistered = append(unregistered, "DeleteUsersUsernameHandler")
+	}
+	if o.DeleteUsersUsernameRoomHistoryHandler == nil {
+		unregistered = append(unregistered, "DeleteUsersUsernameRoomHistoryHandler")
 	}
 	if o.DeleteUsersUsernameUsageHistoryHandler == nil {
 		unregistered = append(unregistered, "DeleteUsersUsernameUsageHistoryHandler")
@@ -352,6 +360,10 @@ func (o *OffTimeAPI) initHandlerCache() {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
 	o.handlers["DELETE"]["/users/{username}"] = NewDeleteUsersUsername(o.context, o.DeleteUsersUsernameHandler)
+	if o.handlers["DELETE"] == nil {
+		o.handlers["DELETE"] = make(map[string]http.Handler)
+	}
+	o.handlers["DELETE"]["/users/{username}/roomHistory"] = NewDeleteUsersUsernameRoomHistory(o.context, o.DeleteUsersUsernameRoomHistoryHandler)
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}

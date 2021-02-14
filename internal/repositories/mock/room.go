@@ -56,6 +56,7 @@ func (r roomRepo) CreateRoom(ctx context.Context, username string, name string) 
 		Name:         name,
 		HostUsername: username,
 		ID:           strfmt.UUID(uuid.NewV4().String()),
+		UserUsages:   make(map[string]int64),
 		CreatedAt:    strfmt.DateTime(createdAt),
 		UpdatedAt:    strfmt.DateTime(createdAt),
 	}

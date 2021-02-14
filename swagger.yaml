@@ -145,6 +145,14 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Room'
+    delete:
+      produces:
+        - application/json
+      responses:
+        '500':
+          $ref: '#/responses/ServerError'
+        '200':
+          description: Success DELETing User roomHistory.
   '/users/{username}/usageHistory':
     parameters:
       - $ref: '#/parameters/usernameParam'
@@ -224,11 +232,7 @@ paths:
                 type: integer
   '/rooms/{roomID}':
     parameters:
-      - in: path
-        name: roomID
-        type: string
-        format: uuid
-        required: true
+      - $ref: '#/parameters/roomIdParam'
     get:
       produces:
         - application/json
@@ -365,6 +369,12 @@ definitions:
         additionalProperties:
           type: integer
 parameters:
+  roomIdParam:
+    in: path
+    name: roomID
+    type: string
+    format: uuid
+    required: true
   usernameParam:
     in: path
     name: username

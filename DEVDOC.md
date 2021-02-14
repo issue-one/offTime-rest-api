@@ -10,7 +10,7 @@
 
 ### Features
 
-### Paths
+### REST Routes
 
 - [x] GET       /users
 - [x] GET       /users/{username}
@@ -24,6 +24,12 @@
 - [x] GET    /users/{username}/roomHistory 
 - [x] GET       /rooms
 - [x] GET       /rooms/{roomID}
+
+### WebSocket events
+
+- [x] createRoom
+- [x] joinRoom
+- [x] updateRoomUsage
 
 ### CRUDs
 

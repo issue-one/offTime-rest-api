@@ -160,6 +160,7 @@ func NewHub() (*Hub, http.Handler) {
 		client := &Client{
 			ID:    id,
 			Rooms: map[string]struct{}{id: {}},
+			hub:   hub,
 		}
 		client.Client = ws.NewClient(h, conn,
 			func(b interface{}) { hub.handleMessage(client, b) },

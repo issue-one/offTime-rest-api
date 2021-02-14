@@ -3,6 +3,7 @@
 package restapi
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"html/template"
@@ -17,6 +18,8 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/strfmt"
+	"github.com/mitchellh/mapstructure"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/issue-one/offTime-rest-api/gen/restapi/operations"
@@ -353,6 +356,17 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			}
 		})
 
+	api.DeleteUsersUsernameRoomHistoryHandler = operations.DeleteUsersUsernameRoomHistoryHandlerFunc(
+		func(params operations.DeleteUsersUsernameRoomHistoryParams) middleware.Responder {
+			// FIXME:  when moving over to gORM
+			user, err := userRepo.GetUser(context.TODO(), params.Username)
+			if err != nil {
+				user.RoomHistory = make([]strfmt.UUID, 0)
+			}
+			return operations.NewDeleteUsersUsernameRoomHistoryOK()
+		},
+	)
+
 	hub, wsHandler := ws.NewHub()
 
 	var wsMiddleware = func(next http.Handler) http.Handler {
@@ -394,58 +408,281 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 		api.Logger(fmt.Sprintf("echo: %v", msg))
 		client.Emit("echo", msg)
 	})
-	/* gosf.Listen("createRoom", func(client *gosf.Client, request *gosf.Request) *gosf.Message {
+
+	hub.Listen("createRoom", func(client *ws.Client, msg interface{}) {
 		createRoomMessage := struct {
-			username string `json:"username,omitempty"`
-			roomName string `json:"room_name,omitempty"`
+			Username string `json:"username,omitempty"`
+			RoomName string `json:"roomName,omitempty"`
 		}{}
 		type response struct {
-			code    int         `json:"code,omitempty"`
-			message interface{} `json:"message,omitempty"`
+			Code    int         `json:"code,omitempty"`
+			Message interface{} `json:"message,omitempty"`
 		}
-		gosf.MapToStruct(request.Message.Body, createRoomMessage)
-		if createRoomMessage.username == "" {
-			return gosf.NewFailureMessage("errorCreatingRoom", gosf.StructToMap(response{
-				code:    400,
-				message: "No username field found in request.",
-			}))
+		{
+			err := mapstructure.Decode(msg, &createRoomMessage)
+			if err != nil {
+				client.Emit("createRoom", response{
+					Code:    400,
+					Message: fmt.Sprintf("Unable to decode data: expects json in form { username: string, roomName: string}\nerr: %v", err),
+				})
+				return
+			}
+			if createRoomMessage.Username == "" {
+				client.Emit("createRoom", response{
+					Code:    400,
+					Message: "No username field found in request.",
+				})
+				return
+			}
+			if createRoomMessage.RoomName == "" {
+				client.Emit("createRoom", response{
+					Code:    400,
+					Message: "No roomName field found in request.",
+				})
+				return
+			}
 		}
-		if createRoomMessage.username == "" {
-			return gosf.NewFailureMessage("errorCreatingRoom", gosf.StructToMap(response{
-				code:    400,
-				message: "No username field found in request.",
-			}))
-		}
-		found, err := userRepo.IsUsernameOccupied(context.TODO(), createRoomMessage.username)
+		found, err := userRepo.IsUsernameOccupied(context.TODO(), createRoomMessage.Username)
 		if err != nil {
-			return gosf.NewFailureMessage("errorCreatingRoom", gosf.StructToMap(response{
-				code:    500,
-				message: "Internal server error: " + err.Error(),
-			}))
+			client.Emit("createRoom", response{
+				Code:    500,
+				Message: "Internal server error: " + err.Error(),
+			})
+			return
 		}
 		if !found {
-			return gosf.NewFailureMessage("errorCreatingRoom", gosf.StructToMap(response{
-				code:    404,
-				message: "No user found under given username: " + createRoomMessage.username,
-			}))
+			client.Emit("createRoom", response{
+				Code:    404,
+				Message: "No user found under given username: " + createRoomMessage.Username,
+			})
+			return
 		}
-
-		room, err := roomRepo.CreateRoom(context.TODO(), createRoomMessage.username, createRoomMessage.roomName)
+		room, err := roomRepo.CreateRoom(context.TODO(), createRoomMessage.Username, createRoomMessage.RoomName)
 		if err != nil {
-			return gosf.NewFailureMessage("errorCreatingRoom", gosf.StructToMap(response{
-				code:    500,
-				message: "Internal server error: " + err.Error(),
-			}))
+			client.Emit("createRoom", response{
+				Code:    500,
+				Message: "Internal server error: " + err.Error(),
+			})
+			return
+		}
+		// FIXME: remove me when moving over to gORM
+		{
+			user, err := userRepo.GetUser(context.TODO(), createRoomMessage.Username)
+			if err != nil {
+				client.Emit("createRoom", response{
+					Code:    500,
+					Message: "Internal server error: " + err.Error(),
+				})
+				return
+			}
+			user.RoomHistory = append(user.RoomHistory, room.ID)
 		}
 		client.Join(room.ID.String())
-		return gosf.NewSuccessMessage("successCreatingRoom", map[string]interface{}{
-			"code": 200,
-			"data": fmt.Sprint(room),
+		// result, _ := json.MarshalIndent(room, "", "\t")
+		client.Emit("createRoom", response{
+			Code:    200,
+			Message: room,
 		})
-	}) */
+	})
+
+	hub.Listen("joinRoom", func(client *ws.Client, msg interface{}) {
+		joinRoomMessage := struct {
+			Username string `json:"username,omitempty"`
+			RoomID   string `json:"roomID,omitempty"`
+		}{}
+		type response struct {
+			Code    int         `json:"code,omitempty"`
+			Message interface{} `json:"message,omitempty"`
+		}
+		{
+			err := mapstructure.Decode(msg, &joinRoomMessage)
+			if err != nil {
+				client.Emit("joinRoom", response{
+					Code:    400,
+					Message: fmt.Sprintf("Unable to decode data: expects json in form { username: string, roomName: string}\nerr: %v", err),
+				})
+				return
+			}
+			if joinRoomMessage.Username == "" {
+				client.Emit("joinRoom", response{
+					Code:    400,
+					Message: "No username field found in request.",
+				})
+				return
+			}
+			if joinRoomMessage.RoomID == "" {
+				client.Emit("joinRoom", response{
+					Code:    400,
+					Message: "No roomName field found in request.",
+				})
+				return
+			}
+		}
+		{
+			found, err := userRepo.IsUsernameOccupied(context.TODO(), joinRoomMessage.Username)
+			if err != nil {
+				client.Emit("joinRoom", response{
+					Code:    500,
+					Message: "Internal server error: " + err.Error(),
+				})
+				return
+			}
+			if !found {
+				client.Emit("joinRoom", response{
+					Code:    404,
+					Message: "No user found under given username: " + joinRoomMessage.Username,
+				})
+				return
+			}
+		}
+		room, err := roomRepo.GetRoom(context.TODO(), strfmt.UUID(joinRoomMessage.RoomID))
+		switch err {
+		case nil:
+			// check if room is ongoing
+			if !room.EndTime.Equal(strfmt.DateTime{}) {
+				client.Emit("joinRoom", response{
+					Code:    422,
+					Message: "Romm has ended. EndTime " + room.EndTime.String(),
+				})
+				return
+			}
+			// FIXME: remove me when moving over to gORM
+			{
+				user, err := userRepo.GetUser(context.TODO(), joinRoomMessage.Username)
+				if err != nil {
+					client.Emit("joinRoom", response{
+						Code:    500,
+						Message: "Internal server error: " + err.Error(),
+					})
+					return
+				}
+				found := false
+				for _, id := range user.RoomHistory {
+					if id == room.ID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					user.RoomHistory = append(user.RoomHistory, room.ID)
+				}
+			}
+			client.Join(room.ID.String())
+			// result, _ := json.MarshalIndent(room, "", "\t")
+			client.Emit("joinRoom", response{
+				Code:    200,
+				Message: room,
+			})
+		case repositories.ErrRoomNotFound:
+			client.Emit("joinRoom", response{
+				Code:    404,
+				Message: "No room found under given id: " + joinRoomMessage.Username,
+			})
+		default:
+			client.Emit("joinRoom", response{
+				Code:    500,
+				Message: "Internal server error: " + err.Error(),
+			})
+		}
+	})
+
+	hub.Listen("updateRoomUsage", func(client *ws.Client, msg interface{}) {
+		updateRoomUsageMessage := struct {
+			Username     string `json:"username,omitempty"`
+			RoomID       string `json:"roomID,omitempty"`
+			UsageSeconds int64  `json:"usageSeconds,omitempty"`
+		}{}
+		type response struct {
+			Code    int         `json:"code,omitempty"`
+			Message interface{} `json:"message,omitempty"`
+		}
+		// check message validity
+		{
+			err := mapstructure.Decode(msg, &updateRoomUsageMessage)
+			if err != nil {
+				client.Emit("updateRoomUsage", response{
+					Code:    400,
+					Message: fmt.Sprintf("Unable to decode data: expects json in form { username: string, roomName: string}\nerr: %v", err),
+				})
+				return
+			}
+			if updateRoomUsageMessage.Username == "" {
+				client.Emit("updateRoomUsage", response{
+					Code:    400,
+					Message: "No username field found in request.",
+				})
+				return
+			}
+			if updateRoomUsageMessage.RoomID == "" {
+				client.Emit("updateRoomUsage", response{
+					Code:    400,
+					Message: "No roomName field found in request.",
+				})
+				return
+			}
+			if updateRoomUsageMessage.UsageSeconds == 0 {
+				client.Emit("updateRoomUsage", response{
+					Code:    400,
+					Message: "No usageSeconds field found in request.",
+				})
+				return
+			}
+		}
+		// check if room is ongoing
+		{
+			room, err := roomRepo.GetRoom(context.TODO(), strfmt.UUID(updateRoomUsageMessage.RoomID))
+			switch err {
+			case nil:
+				if !room.EndTime.Equal(strfmt.DateTime{}) {
+					client.Emit("updateRoomUsage", response{
+						Code:    422,
+						Message: "Romm has ended. EndTime " + room.EndTime.String(),
+					})
+					return
+				}
+			case repositories.ErrRoomNotFound:
+				client.Emit("updateRoomUsage", response{
+					Code:    404,
+					Message: "No user found under given username: " + updateRoomUsageMessage.Username,
+				})
+				return
+			default:
+				client.Emit("updateRoomUsage", response{
+					Code:    500,
+					Message: "Internal server error: " + err.Error(),
+				})
+				return
+			}
+		}
+		room, err := roomRepo.UpdateRoomUserUsages(
+			context.TODO(),
+			strfmt.UUID(updateRoomUsageMessage.RoomID),
+			&map[string]int64{
+				updateRoomUsageMessage.Username: updateRoomUsageMessage.UsageSeconds,
+			},
+		)
+		switch err {
+		case nil:
+			hub.Emit(updateRoomUsageMessage.RoomID, "usageUpdate", room.UserUsages)
+			// result, _ := json.MarshalIndent(room, "", "\t")
+			client.Emit("updateRoomUsage", response{
+				Code: 200,
+			})
+		case repositories.ErrRoomNotFound:
+			client.Emit("updateRoomUsage", response{
+				Code:    404,
+				Message: "No room found under given id: " + updateRoomUsageMessage.Username,
+			})
+		default:
+			client.Emit("updateRoomUsage", response{
+				Code:    500,
+				Message: "Internal server error: " + err.Error(),
+			})
+		}
+	})
 
 	api.PreServerShutdown = func() {
-		hub.Shutdown()
+		// hub.Shutdown()
 	}
 
 	api.ServerShutdown = func() {}
@@ -567,8 +804,7 @@ func urlFromFilename(fileName string) string {
 var doc = template.Must(template.New("root").Parse(html))
 
 const (
-	html = `
-<!DOCTYPE html>
+	html = `<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -605,7 +841,14 @@ const (
                         console.log("evt box empty");
                         return false;
                     }
-                    conn.send(JSON.stringify({ event: evt.value, data: msg.value }));
+                    msg.value = msg.value.trim();
+                    evt.value = evt.value.trim();
+                    const message = JSON.stringify({
+                        event: evt.value,
+                        data: msg.value[0] == '{' ? JSON.parse(msg.value) : msg.value
+                    })
+                    console.log("sending msg: \n" + message)
+                    conn.send(message);
                 } catch (e) {
                     console.error("error")
                     console.error(e)

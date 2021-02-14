@@ -86,11 +86,7 @@ func init() {
       },
       "parameters": [
         {
-          "type": "string",
-          "format": "uuid",
-          "name": "roomID",
-          "in": "path",
-          "required": true
+          "$ref": "#/parameters/roomIdParam"
         }
       ]
     },
@@ -303,6 +299,19 @@ func init() {
           },
           "404": {
             "$ref": "#/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "delete": {
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success DELETing User roomHistory."
           },
           "500": {
             "$ref": "#/responses/ServerError"
@@ -580,6 +589,13 @@ func init() {
       "description": "Number of items to fetch.",
       "name": "limit",
       "in": "query"
+    },
+    "roomIdParam": {
+      "type": "string",
+      "format": "uuid",
+      "name": "roomID",
+      "in": "path",
+      "required": true
     },
     "skipParam": {
       "type": "integer",
@@ -1142,6 +1158,26 @@ func init() {
           }
         }
       },
+      "delete": {
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success DELETing User roomHistory."
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
       "parameters": [
         {
           "minLength": 5,
@@ -1486,6 +1522,13 @@ func init() {
       "description": "Number of items to fetch.",
       "name": "limit",
       "in": "query"
+    },
+    "roomIdParam": {
+      "type": "string",
+      "format": "uuid",
+      "name": "roomID",
+      "in": "path",
+      "required": true
     },
     "skipParam": {
       "minimum": 0,

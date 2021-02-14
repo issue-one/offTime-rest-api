@@ -160,12 +160,12 @@ func (h *Hub) Shutdown() {
 		defer close(h.shutdown)
 
 		for c := range conns {
-			delete(conns, c)
 			c.Close()
+			// delete(conns, c)
 		}
 	})
 
-	// <-h.shutdown
+	<-h.shutdown
 }
 
 func (h *Hub) add(conn *websocket.Conn, r *http.Request) {
