@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/go-openapi/strfmt"
@@ -9,35 +10,28 @@ import (
 	"github.com/issue-one/offTime-rest-api/internal/repositories"
 )
 
-var (
-	User01 = models.User{
-		Username:    "almaz",
-		Email:       "pearl@pax.os",
-		Password:    "thejewel",
-		PictureURL:  "cam_123124.jpg",
-		RoomHistory: []strfmt.UUID{},
-	}
-	User02 = models.User{
-		Username:    "tseahay",
-		Email:       "sun@worsh.ip",
-		Password:    "kokob",
-		PictureURL:  "inyoface.jpg",
-		RoomHistory: []strfmt.UUID{},
-	}
-	User03 = models.User{
-		Username:    "emebet",
-		Email:       "mistress@nig.ht",
-		Password:    "danger",
-		PictureURL:  "perplex.jpg",
-		RoomHistory: []strfmt.UUID{},
-	}
-)
+type userRepo struct {
+	mutex *sync.RWMutex
+	users map[string]*models.User
+}
 
-func NewMockUserRepositories() repositories.User {
+func NewMockUserRepository() repositories.User {
+	return userRepo{
+		mutex: &sync.RWMutex{},
+		users: map[string]*models.User{
+			User01.Username: &User01,
+			User02.Username: &User02,
+			User03.Username: &User03,
+		},
+	}
+}
+
+func NewMockUserRepositoryCopyEntities() repositories.User {
 	user01Copy := User01
 	user02Copy := User02
 	user03Copy := User03
-	return repo{
+	return userRepo{
+		mutex: &sync.RWMutex{},
 		users: map[string]*models.User{
 			User01.Username: &user01Copy,
 			User02.Username: &user02Copy,
@@ -46,17 +40,16 @@ func NewMockUserRepositories() repositories.User {
 	}
 }
 
-func NewMockUserRepositoriesEmpty() repositories.User {
-	return repo{
+func NewMockUserRepositoryEmpty() repositories.User {
+	return userRepo{
+		mutex: &sync.RWMutex{},
 		users: make(map[string]*models.User),
 	}
 }
 
-type repo struct {
-	users map[string]*models.User
-}
-
-func (r repo) CreateUser(ctx context.Context, username string, u *models.CreateUserInput) (*models.User, error) {
+func (r userRepo) CreateUser(ctx context.Context, username string, u *models.CreateUserInput) (*models.User, error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	createdAt := time.Now().Round(0)
 	newUser := models.User{
 		Username:    username,
@@ -72,7 +65,9 @@ func (r repo) CreateUser(ctx context.Context, username string, u *models.CreateU
 	return &copy, nil
 }
 
-func (r repo) GetUser(ctx context.Context, username string) (*models.User, error) {
+func (r userRepo) GetUser(ctx context.Context, username string) (*models.User, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
 	user, ok := r.users[username]
 	if !ok {
 		return nil, repositories.ErrUserNotFound
@@ -81,7 +76,9 @@ func (r repo) GetUser(ctx context.Context, username string) (*models.User, error
 	return &copy, nil
 }
 
-func (r repo) GetAllUsers(ctx context.Context, limit int64, offset int64) (items []*models.User, totalCount int, err error) {
+func (r userRepo) GetAllUsers(ctx context.Context, limit int64, offset int64) (items []*models.User, totalCount int, err error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
 	capacity := len(r.users)
 	if offset < int64(capacity) {
 		capacity = int(offset)
@@ -104,7 +101,9 @@ func (r repo) GetAllUsers(ctx context.Context, limit int64, offset int64) (items
 	return users, len(r.users), nil
 }
 
-func (r repo) UpdateUser(ctx context.Context, username string, u *models.UpdateUserInput) (*models.User, error) {
+func (r userRepo) UpdateUser(ctx context.Context, username string, u *models.UpdateUserInput) (*models.User, error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	oldUser, ok := r.users[username]
 	if !ok {
 		return nil, repositories.ErrUserNotFound
@@ -119,7 +118,9 @@ func (r repo) UpdateUser(ctx context.Context, username string, u *models.UpdateU
 	return &copy, nil
 }
 
-func (r repo) SetImage(ctx context.Context, username string, imageName string) (*models.User, error) {
+func (r userRepo) SetImage(ctx context.Context, username string, imageName string) (*models.User, error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	oldUser, ok := r.users[username]
 	if !ok {
 		return nil, repositories.ErrUserNotFound
@@ -130,17 +131,23 @@ func (r repo) SetImage(ctx context.Context, username string, imageName string) (
 	return &copy, nil
 }
 
-func (r repo) DeleteUser(ctx context.Context, username string) error {
+func (r userRepo) DeleteUser(ctx context.Context, username string) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	delete(r.users, username)
 	return nil
 }
 
-func (r repo) IsUsernameOccupied(ctx context.Context, username string) (bool, error) {
+func (r userRepo) IsUsernameOccupied(ctx context.Context, username string) (bool, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
 	_, ok := r.users[username]
 	return ok, nil
 }
 
-func (r repo) IsEmailOccupied(ctx context.Context, email string, excludedUsername string) (bool, error) {
+func (r userRepo) IsEmailOccupied(ctx context.Context, email string, excludedUsername string) (bool, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
 	for _, user := range r.users {
 		if string(user.Email) == email {
 			if user.Username == excludedUsername {

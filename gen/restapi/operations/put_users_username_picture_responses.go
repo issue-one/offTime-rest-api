@@ -105,6 +105,11 @@ const PutUsersUsernamePictureNotFoundCode int = 404
 swagger:response putUsersUsernamePictureNotFound
 */
 type PutUsersUsernamePictureNotFound struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *PutUsersUsernamePictureNotFoundBody `json:"body,omitempty"`
 }
 
 // NewPutUsersUsernamePictureNotFound creates PutUsersUsernamePictureNotFound with default headers values
@@ -113,12 +118,27 @@ func NewPutUsersUsernamePictureNotFound() *PutUsersUsernamePictureNotFound {
 	return &PutUsersUsernamePictureNotFound{}
 }
 
+// WithPayload adds the payload to the put users username picture not found response
+func (o *PutUsersUsernamePictureNotFound) WithPayload(payload *PutUsersUsernamePictureNotFoundBody) *PutUsersUsernamePictureNotFound {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the put users username picture not found response
+func (o *PutUsersUsernamePictureNotFound) SetPayload(payload *PutUsersUsernamePictureNotFoundBody) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PutUsersUsernamePictureNotFound) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(404)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // PutUsersUsernamePictureInternalServerErrorCode is the HTTP code returned for type PutUsersUsernamePictureInternalServerError

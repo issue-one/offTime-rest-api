@@ -65,6 +65,11 @@ const GetUsersUsernameNotFoundCode int = 404
 swagger:response getUsersUsernameNotFound
 */
 type GetUsersUsernameNotFound struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *GetUsersUsernameNotFoundBody `json:"body,omitempty"`
 }
 
 // NewGetUsersUsernameNotFound creates GetUsersUsernameNotFound with default headers values
@@ -73,12 +78,27 @@ func NewGetUsersUsernameNotFound() *GetUsersUsernameNotFound {
 	return &GetUsersUsernameNotFound{}
 }
 
+// WithPayload adds the payload to the get users username not found response
+func (o *GetUsersUsernameNotFound) WithPayload(payload *GetUsersUsernameNotFoundBody) *GetUsersUsernameNotFound {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get users username not found response
+func (o *GetUsersUsernameNotFound) SetPayload(payload *GetUsersUsernameNotFoundBody) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *GetUsersUsernameNotFound) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(404)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // GetUsersUsernameInternalServerErrorCode is the HTTP code returned for type GetUsersUsernameInternalServerError

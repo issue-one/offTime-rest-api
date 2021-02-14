@@ -109,6 +109,11 @@ const PostUsersUsernameUsageHistoryNotFoundCode int = 404
 swagger:response postUsersUsernameUsageHistoryNotFound
 */
 type PostUsersUsernameUsageHistoryNotFound struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *PostUsersUsernameUsageHistoryNotFoundBody `json:"body,omitempty"`
 }
 
 // NewPostUsersUsernameUsageHistoryNotFound creates PostUsersUsernameUsageHistoryNotFound with default headers values
@@ -117,12 +122,27 @@ func NewPostUsersUsernameUsageHistoryNotFound() *PostUsersUsernameUsageHistoryNo
 	return &PostUsersUsernameUsageHistoryNotFound{}
 }
 
+// WithPayload adds the payload to the post users username usage history not found response
+func (o *PostUsersUsernameUsageHistoryNotFound) WithPayload(payload *PostUsersUsernameUsageHistoryNotFoundBody) *PostUsersUsernameUsageHistoryNotFound {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post users username usage history not found response
+func (o *PostUsersUsernameUsageHistoryNotFound) SetPayload(payload *PostUsersUsernameUsageHistoryNotFoundBody) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PostUsersUsernameUsageHistoryNotFound) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(404)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // PostUsersUsernameUsageHistoryConflictCode is the HTTP code returned for type PostUsersUsernameUsageHistoryConflict

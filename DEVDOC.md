@@ -2,14 +2,15 @@
 
 ## To-do
 
-- [ ] v4 UUIDs
+- [x] v4 UUIDs
 - [x] Image serving/uploading
+- [x] websockets
 
 ## design-doc
 
 ### Features
 
-### Paths
+### REST Routes
 
 - [x] GET       /users
 - [x] GET       /users/{username}
@@ -20,8 +21,17 @@
 - [ ] GET       /users/{username}/usageHistory 
 - [ ] POST      /users/{username}/usageHistory 
 - [ ] DELETE    /users/{username}/usageHistory 
-- [ ] GET       /rooms
-- [ ] GET       /rooms/{roomID}
+- [x] GET    /users/{username}/roomHistory 
+- [x] GET       /rooms
+- [x] GET       /rooms/{roomID}
+
+### WebSocket events
+
+- [x] createRoom
+- [x] joinRoom
+- [x] updateRoomUsage
+
+### CRUDs
 
 - [x] GetAllUsers
 - [x] GetUser
@@ -33,7 +43,9 @@
 - [ ] CreateUsageHistoryForUser
 - [ ] DeleteAllUsageHistoryForUser
 
-- [ ] GetAllRooms
-- [ ] GetRoom
+- [x] GetAllRooms
+- [x] GetRoom
+- [x] CreateRoom
+- [x] UpdateRoom
 
 ## dev-log

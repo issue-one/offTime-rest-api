@@ -11,9 +11,20 @@ import (
 func TestUserRepository(t *testing.T) {
 	tests.UserRepositoryTestSuite(t,
 		func() (repositories.User, error) {
-			return mock.NewMockUserRepositories(), nil
+			return mock.NewMockUserRepositoryCopyEntities(), nil
 		},
 		func(repo repositories.User) error {
+			return nil
+		},
+	)
+}
+
+func TestRoomRepository(t *testing.T) {
+	tests.RoomRepositoryTestSuite(t,
+		func() (repositories.Room, error) {
+			return mock.NewMockRoomRepositoryCopyEntities(), nil
+		},
+		func(repo repositories.Room) error {
 			return nil
 		},
 	)

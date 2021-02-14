@@ -1,5 +1,5 @@
 swagger generate server \
  -f swagger.yaml\
- -t gen
- --skip-main
+ -t gen \
+ --exclude-main
 #  -P User \

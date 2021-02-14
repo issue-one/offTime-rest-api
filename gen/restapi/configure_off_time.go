@@ -3,8 +3,10 @@
 package restapi
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"log"
@@ -16,9 +18,13 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/google/uuid"
+	"github.com/go-openapi/strfmt"
+	"github.com/mitchellh/mapstructure"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/issue-one/offTime-rest-api/gen/restapi/operations"
+	"github.com/issue-one/offTime-rest-api/internal/delivery/ws"
+	"github.com/issue-one/offTime-rest-api/internal/repositories"
 	"github.com/issue-one/offTime-rest-api/internal/repositories/mock"
 )
 
@@ -26,9 +32,11 @@ import (
 
 func configureFlags(api *operations.OffTimeAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
+
 }
 
 func configureAPI(api *operations.OffTimeAPI) http.Handler {
+
 	// configure the api here
 	api.ServeError = errors.ServeError
 
@@ -50,7 +58,7 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// operations.PutUsersUsernamePictureMaxParseMemory = 32 << 20
 
-	userRepo := mock.NewMockUserRepositories()
+	userRepo := mock.NewMockUserRepository()
 	{
 		var ok bool
 		imageStoragePath, ok = os.LookupEnv("IMAGE_STORAGE_PATH")
@@ -62,6 +70,7 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			imageServingRoute = "/images/"
 		}
 	}
+	roomRepo := mock.NewMockRoomRepository()
 
 	// USER handlers
 	api.PutUsersUsernameHandler = operations.PutUsersUsernameHandlerFunc(
@@ -78,8 +87,8 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 
 			occupied, err := userRepo.IsUsernameOccupied(ctx, params.Username)
 			if err != nil {
-				return operations.NewPutUsersUsernameInternalServerError().WithPayload(
-					&operations.PutUsersUsernameInternalServerErrorBody{Message: err.Error()},
+				return operations.NewPatchUsersUsernameInternalServerError().WithPayload(
+					&operations.PatchUsersUsernameInternalServerErrorBody{Message: err.Error()},
 				)
 			}
 			if occupied {
@@ -113,15 +122,20 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 	api.GetUsersUsernameHandler = operations.GetUsersUsernameHandlerFunc(
 		func(params operations.GetUsersUsernameParams) middleware.Responder {
 			user, err := userRepo.GetUser(params.HTTPRequest.Context(), params.Username)
-			if err != nil {
+			switch err {
+			case nil:
+
+				if user.PictureURL != "" {
+					user.PictureURL = urlFromFilename(user.PictureURL)
+				}
+				return operations.NewGetUsersUsernameOK().WithPayload(user)
+			case repositories.ErrUserNotFound:
+				return operations.NewGetUsersUsernameNotFound()
+			default:
 				return operations.NewGetUsersUsernameInternalServerError().WithPayload(
 					&operations.GetUsersUsernameInternalServerErrorBody{Message: err.Error()},
 				)
 			}
-			if user.PictureURL != "" {
-				user.PictureURL = urlFromFilename(user.PictureURL)
-			}
-			return operations.NewGetUsersUsernameOK().WithPayload(user)
 		})
 
 	api.GetUsersHandler = operations.GetUsersHandlerFunc(
@@ -160,8 +174,8 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			if params.Body.Email != "" {
 				occupied, err := userRepo.IsEmailOccupied(ctx, params.Body.Email.String(), "")
 				if err != nil {
-					return operations.NewPatchUsersUsernameBadRequest().WithPayload(
-						&operations.PatchUsersUsernameBadRequestBody{Message: err.Error()},
+					return operations.NewPatchUsersUsernameInternalServerError().WithPayload(
+						&operations.PatchUsersUsernameInternalServerErrorBody{Message: err.Error()},
 					)
 				}
 				if occupied {
@@ -171,19 +185,24 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 				}
 			}
 			user, err := userRepo.UpdateUser(ctx, params.Username, params.Body)
-			if err != nil {
+			switch err {
+			case nil:
+				if user.PictureURL != "" {
+					user.PictureURL = urlFromFilename(user.PictureURL)
+				}
+				return operations.NewPatchUsersUsernameOK().WithPayload(user)
+			case repositories.ErrUserNotFound:
+				return operations.NewPatchUsersUsernameNotFound()
+			default:
 				return operations.NewPatchUsersUsernameInternalServerError().WithPayload(
 					&operations.PatchUsersUsernameInternalServerErrorBody{Message: err.Error()},
 				)
 			}
-			if user.PictureURL != "" {
-				user.PictureURL = urlFromFilename(user.PictureURL)
-			}
-			return operations.NewPatchUsersUsernameOK().WithPayload(user)
 		})
 
 	api.PutUsersUsernamePictureHandler = operations.PutUsersUsernamePictureHandlerFunc(
 		func(params operations.PutUsersUsernamePictureParams) middleware.Responder {
+			// save the image temporarily
 			tempFile, extension, err := saveImageFromRequest(params.Image)
 			defer func() {
 				_ = os.Remove(tempFile.Name())
@@ -205,40 +224,46 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 					},
 				)
 			}
+			// update user
 			user, err := userRepo.SetImage(
 				params.HTTPRequest.Context(),
 				params.Username,
 				generateFileNameForStorage(params.Username+"."+extension, "user"),
 			)
-			if err != nil {
+			switch err {
+			case nil:
+				err = saveTempImagePermanentlyToPath(tempFile, imageStoragePath+user.PictureURL)
+				if err != nil {
+					return operations.NewPutUsersUsernamePictureInternalServerError().WithPayload(
+						&operations.PutUsersUsernamePictureInternalServerErrorBody{
+							Message: err.Error(),
+						},
+					)
+				}
+				return operations.NewPutUsersUsernamePictureOK().WithPayload(
+					urlFromFilename(user.PictureURL),
+				)
+			case repositories.ErrUserNotFound:
+				return operations.NewPutUsersUsernamePictureNotFound()
+			default:
 				return operations.NewPutUsersUsernamePictureInternalServerError().WithPayload(
 					&operations.PutUsersUsernamePictureInternalServerErrorBody{
 						Message: err.Error(),
 					},
 				)
 			}
-			err = saveTempImagePermanentlyToPath(tempFile, imageStoragePath+user.PictureURL)
-			if err != nil {
-				return operations.NewPutUsersUsernamePictureInternalServerError().WithPayload(
-					&operations.PutUsersUsernamePictureInternalServerErrorBody{
-						Message: err.Error(),
-					},
-				)
-			}
-			return operations.NewPutUsersUsernamePictureOK().WithPayload(
-				urlFromFilename(user.PictureURL),
-			)
 		})
 
-	api.DeleteUsersUsernameHandler = operations.DeleteUsersUsernameHandlerFunc(func(params operations.DeleteUsersUsernameParams) middleware.Responder {
-		err := userRepo.DeleteUser(params.HTTPRequest.Context(), params.Username)
-		if err != nil {
-			return operations.NewDeleteUsersUsernameInternalServerError().WithPayload(
-				&operations.DeleteUsersUsernameInternalServerErrorBody{Message: err.Error()},
-			)
-		}
-		return operations.NewDeleteUsersUsernameOK()
-	})
+	api.DeleteUsersUsernameHandler = operations.DeleteUsersUsernameHandlerFunc(
+		func(params operations.DeleteUsersUsernameParams) middleware.Responder {
+			err := userRepo.DeleteUser(params.HTTPRequest.Context(), params.Username)
+			if err != nil {
+				return operations.NewDeleteUsersUsernameInternalServerError().WithPayload(
+					&operations.DeleteUsersUsernameInternalServerErrorBody{Message: err.Error()},
+				)
+			}
+			return operations.NewDeleteUsersUsernameOK()
+		})
 
 	// USAGE handlers
 	if api.GetUsersUsernameUsageHistoryHandler == nil {
@@ -246,11 +271,13 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			return middleware.NotImplemented("operation operations.GetUsersUsernameUsageHistory has not yet been implemented")
 		})
 	}
+
 	if api.PostUsersUsernameUsageHistoryHandler == nil {
 		api.PostUsersUsernameUsageHistoryHandler = operations.PostUsersUsernameUsageHistoryHandlerFunc(func(params operations.PostUsersUsernameUsageHistoryParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.PostUsersUsernameUsageHistory has not yet been implemented")
 		})
 	}
+
 	if api.DeleteUsersUsernameUsageHistoryHandler == nil {
 		api.DeleteUsersUsernameUsageHistoryHandler = operations.DeleteUsersUsernameUsageHistoryHandlerFunc(func(params operations.DeleteUsersUsernameUsageHistoryParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.DeleteUsersUsernameUsageHistory has not yet been implemented")
@@ -258,22 +285,417 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 	}
 
 	// ROOM handlers
-	if api.GetRoomsHandler == nil {
-		api.GetRoomsHandler = operations.GetRoomsHandlerFunc(func(params operations.GetRoomsParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetRooms has not yet been implemented")
+	api.GetRoomsHandler = operations.GetRoomsHandlerFunc(
+		func(params operations.GetRoomsParams) middleware.Responder {
+			// TODO: check if min limit and offset is auto enforced
+			rooms, totalCount, err := roomRepo.GetAllRooms(params.HTTPRequest.Context(), *params.Limit, *params.Offset)
+			if err != nil {
+				return operations.NewGetRoomsInternalServerError().WithPayload(
+					&operations.GetRoomsInternalServerErrorBody{
+						Message: err.Error(),
+					},
+				)
+			}
+			return operations.NewGetRoomsOK().WithPayload(
+				&operations.GetRoomsOKBody{
+					Items:      rooms,
+					TotalCount: int64(totalCount),
+				},
+			)
 		})
-	}
-	if api.GetRoomsRoomIDHandler == nil {
-		api.GetRoomsRoomIDHandler = operations.GetRoomsRoomIDHandlerFunc(func(params operations.GetRoomsRoomIDParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetRoomsRoomID has not yet been implemented")
+
+	api.GetRoomsRoomIDHandler = operations.GetRoomsRoomIDHandlerFunc(
+		func(params operations.GetRoomsRoomIDParams) middleware.Responder {
+			room, err := roomRepo.GetRoom(params.HTTPRequest.Context(), params.RoomID)
+			switch err {
+			case nil:
+				return operations.NewGetRoomsRoomIDOK().WithPayload(room)
+			case repositories.ErrRoomNotFound:
+				return operations.NewGetRoomsRoomIDNotFound()
+			default:
+				return operations.NewGetRoomsRoomIDInternalServerError().WithPayload(
+					&operations.GetRoomsRoomIDInternalServerErrorBody{
+						Message: err.Error(),
+					},
+				)
+			}
+		},
+	)
+
+	api.GetUsersUsernameRoomHistoryHandler = operations.GetUsersUsernameRoomHistoryHandlerFunc(
+		func(params operations.GetUsersUsernameRoomHistoryParams) middleware.Responder {
+			user, err := userRepo.GetUser(params.HTTPRequest.Context(), params.Username)
+			switch err {
+			case nil:
+			case repositories.ErrUserNotFound:
+				return operations.NewGetUsersUsernameRoomHistoryNotFound().WithPayload(
+					&operations.GetUsersUsernameRoomHistoryNotFoundBody{
+						Entity:    "User",
+						Identifer: params.Username,
+					},
+				)
+			default:
+				return operations.NewGetUsersUsernameRoomHistoryInternalServerError().WithPayload(
+					&operations.GetUsersUsernameRoomHistoryInternalServerErrorBody{Message: err.Error()},
+				)
+			}
+			rooms, err := roomRepo.GetMultipleRooms(params.HTTPRequest.Context(), user.RoomHistory)
+			switch err {
+			case nil:
+				return operations.NewGetUsersUsernameRoomHistoryOK().WithPayload(rooms)
+			case repositories.ErrRoomNotFound:
+				return operations.NewGetUsersUsernameRoomHistoryNotFound().WithPayload(
+					&operations.GetUsersUsernameRoomHistoryNotFoundBody{
+						Entity: "Room",
+					},
+				)
+			default:
+				return operations.NewGetUsersUsernameRoomHistoryInternalServerError().WithPayload(
+					&operations.GetUsersUsernameRoomHistoryInternalServerErrorBody{Message: err.Error()},
+				)
+			}
+		})
+
+	api.DeleteUsersUsernameRoomHistoryHandler = operations.DeleteUsersUsernameRoomHistoryHandlerFunc(
+		func(params operations.DeleteUsersUsernameRoomHistoryParams) middleware.Responder {
+			// FIXME:  when moving over to gORM
+			user, err := userRepo.GetUser(context.TODO(), params.Username)
+			if err != nil {
+				user.RoomHistory = make([]strfmt.UUID, 0)
+			}
+			return operations.NewDeleteUsersUsernameRoomHistoryOK()
+		},
+	)
+
+	hub, wsHandler := ws.NewHub()
+
+	var wsMiddleware = func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/ws":
+				wsHandler.ServeHTTP(w, r)
+				// api.Logger(fmt.Sprintf("wsMiddleware: %v", hub.Rooms))
+				break
+			case "/":
+				s := struct {
+					Addr string
+				}{
+					Addr: "localhost:8080",
+				}
+				err := doc.ExecuteTemplate(w, "root", s)
+				if err != nil {
+					log.Fatal(err)
+				}
+				break
+			default:
+				next.ServeHTTP(w, r)
+			}
 		})
 	}
 
-	api.PreServerShutdown = func() {}
+	hub.Listen(ws.ConnectedEvent, func(client *ws.Client, msg interface{}) {
+		api.Logger(fmt.Sprintf("client connected at id: %v", client.ID))
+	})
+	hub.Listen(ws.CloseEvent, func(client *ws.Client, msg interface{}) {
+		api.Logger(fmt.Sprintf("client at id: %v left", client.ID))
+	})
+
+	hub.MesssageListener = func(client *ws.Client, event string, msg interface{}) {
+		api.Logger(fmt.Sprintf("client at id: (%v) sent message: %v", client.ID, msg))
+	}
+
+	hub.Listen("echo", func(client *ws.Client, msg interface{}) {
+		api.Logger(fmt.Sprintf("echo: %v", msg))
+		client.Emit("echo", msg)
+	})
+
+	hub.Listen("createRoom", func(client *ws.Client, msg interface{}) {
+		createRoomMessage := struct {
+			Username string `json:"username,omitempty"`
+			RoomName string `json:"roomName,omitempty"`
+		}{}
+		type response struct {
+			Code    int         `json:"code,omitempty"`
+			Message interface{} `json:"message,omitempty"`
+		}
+		{
+			err := mapstructure.Decode(msg, &createRoomMessage)
+			if err != nil {
+				client.Emit("createRoom", response{
+					Code:    400,
+					Message: fmt.Sprintf("Unable to decode data: expects json in form { username: string, roomName: string}\nerr: %v", err),
+				})
+				return
+			}
+			if createRoomMessage.Username == "" {
+				client.Emit("createRoom", response{
+					Code:    400,
+					Message: "No username field found in request.",
+				})
+				return
+			}
+			if createRoomMessage.RoomName == "" {
+				client.Emit("createRoom", response{
+					Code:    400,
+					Message: "No roomName field found in request.",
+				})
+				return
+			}
+		}
+		found, err := userRepo.IsUsernameOccupied(context.TODO(), createRoomMessage.Username)
+		if err != nil {
+			client.Emit("createRoom", response{
+				Code:    500,
+				Message: "Internal server error: " + err.Error(),
+			})
+			return
+		}
+		if !found {
+			client.Emit("createRoom", response{
+				Code:    404,
+				Message: "No user found under given username: " + createRoomMessage.Username,
+			})
+			return
+		}
+		room, err := roomRepo.CreateRoom(context.TODO(), createRoomMessage.Username, createRoomMessage.RoomName)
+		if err != nil {
+			client.Emit("createRoom", response{
+				Code:    500,
+				Message: "Internal server error: " + err.Error(),
+			})
+			return
+		}
+		// FIXME: remove me when moving over to gORM
+		{
+			user, err := userRepo.GetUser(context.TODO(), createRoomMessage.Username)
+			if err != nil {
+				client.Emit("createRoom", response{
+					Code:    500,
+					Message: "Internal server error: " + err.Error(),
+				})
+				return
+			}
+			user.RoomHistory = append(user.RoomHistory, room.ID)
+		}
+		client.Join(room.ID.String())
+		// result, _ := json.MarshalIndent(room, "", "\t")
+		client.Emit("createRoom", response{
+			Code:    200,
+			Message: room,
+		})
+	})
+
+	hub.Listen("joinRoom", func(client *ws.Client, msg interface{}) {
+		joinRoomMessage := struct {
+			Username string `json:"username,omitempty"`
+			RoomID   string `json:"roomID,omitempty"`
+		}{}
+		type response struct {
+			Code    int         `json:"code,omitempty"`
+			Message interface{} `json:"message,omitempty"`
+		}
+		{
+			err := mapstructure.Decode(msg, &joinRoomMessage)
+			if err != nil {
+				client.Emit("joinRoom", response{
+					Code:    400,
+					Message: fmt.Sprintf("Unable to decode data: expects json in form { username: string, roomName: string}\nerr: %v", err),
+				})
+				return
+			}
+			if joinRoomMessage.Username == "" {
+				client.Emit("joinRoom", response{
+					Code:    400,
+					Message: "No username field found in request.",
+				})
+				return
+			}
+			if joinRoomMessage.RoomID == "" {
+				client.Emit("joinRoom", response{
+					Code:    400,
+					Message: "No roomName field found in request.",
+				})
+				return
+			}
+		}
+		{
+			found, err := userRepo.IsUsernameOccupied(context.TODO(), joinRoomMessage.Username)
+			if err != nil {
+				client.Emit("joinRoom", response{
+					Code:    500,
+					Message: "Internal server error: " + err.Error(),
+				})
+				return
+			}
+			if !found {
+				client.Emit("joinRoom", response{
+					Code:    404,
+					Message: "No user found under given username: " + joinRoomMessage.Username,
+				})
+				return
+			}
+		}
+		room, err := roomRepo.GetRoom(context.TODO(), strfmt.UUID(joinRoomMessage.RoomID))
+		switch err {
+		case nil:
+			// check if room is ongoing
+			if !room.EndTime.Equal(strfmt.DateTime{}) {
+				client.Emit("joinRoom", response{
+					Code:    422,
+					Message: "Romm has ended. EndTime " + room.EndTime.String(),
+				})
+				return
+			}
+			// FIXME: remove me when moving over to gORM
+			{
+				user, err := userRepo.GetUser(context.TODO(), joinRoomMessage.Username)
+				if err != nil {
+					client.Emit("joinRoom", response{
+						Code:    500,
+						Message: "Internal server error: " + err.Error(),
+					})
+					return
+				}
+				found := false
+				for _, id := range user.RoomHistory {
+					if id == room.ID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					user.RoomHistory = append(user.RoomHistory, room.ID)
+				}
+			}
+			client.Join(room.ID.String())
+			// result, _ := json.MarshalIndent(room, "", "\t")
+			client.Emit("joinRoom", response{
+				Code:    200,
+				Message: room,
+			})
+		case repositories.ErrRoomNotFound:
+			client.Emit("joinRoom", response{
+				Code:    404,
+				Message: "No room found under given id: " + joinRoomMessage.Username,
+			})
+		default:
+			client.Emit("joinRoom", response{
+				Code:    500,
+				Message: "Internal server error: " + err.Error(),
+			})
+		}
+	})
+
+	hub.Listen("updateRoomUsage", func(client *ws.Client, msg interface{}) {
+		updateRoomUsageMessage := struct {
+			Username     string `json:"username,omitempty"`
+			RoomID       string `json:"roomID,omitempty"`
+			UsageSeconds int64  `json:"usageSeconds,omitempty"`
+		}{}
+		type response struct {
+			Code    int         `json:"code,omitempty"`
+			Message interface{} `json:"message,omitempty"`
+		}
+		// check message validity
+		{
+			err := mapstructure.Decode(msg, &updateRoomUsageMessage)
+			if err != nil {
+				client.Emit("updateRoomUsage", response{
+					Code:    400,
+					Message: fmt.Sprintf("Unable to decode data: expects json in form { username: string, roomName: string}\nerr: %v", err),
+				})
+				return
+			}
+			if updateRoomUsageMessage.Username == "" {
+				client.Emit("updateRoomUsage", response{
+					Code:    400,
+					Message: "No username field found in request.",
+				})
+				return
+			}
+			if updateRoomUsageMessage.RoomID == "" {
+				client.Emit("updateRoomUsage", response{
+					Code:    400,
+					Message: "No roomName field found in request.",
+				})
+				return
+			}
+			if updateRoomUsageMessage.UsageSeconds == 0 {
+				client.Emit("updateRoomUsage", response{
+					Code:    400,
+					Message: "No usageSeconds field found in request.",
+				})
+				return
+			}
+		}
+		// check if room is ongoing
+		{
+			room, err := roomRepo.GetRoom(context.TODO(), strfmt.UUID(updateRoomUsageMessage.RoomID))
+			switch err {
+			case nil:
+				if !room.EndTime.Equal(strfmt.DateTime{}) {
+					client.Emit("updateRoomUsage", response{
+						Code:    422,
+						Message: "Romm has ended. EndTime " + room.EndTime.String(),
+					})
+					return
+				}
+			case repositories.ErrRoomNotFound:
+				client.Emit("updateRoomUsage", response{
+					Code:    404,
+					Message: "No user found under given username: " + updateRoomUsageMessage.Username,
+				})
+				return
+			default:
+				client.Emit("updateRoomUsage", response{
+					Code:    500,
+					Message: "Internal server error: " + err.Error(),
+				})
+				return
+			}
+		}
+		room, err := roomRepo.UpdateRoomUserUsages(
+			context.TODO(),
+			strfmt.UUID(updateRoomUsageMessage.RoomID),
+			&map[string]int64{
+				updateRoomUsageMessage.Username: updateRoomUsageMessage.UsageSeconds,
+			},
+		)
+		switch err {
+		case nil:
+			hub.Emit(updateRoomUsageMessage.RoomID, "usageUpdate", room.UserUsages)
+			// result, _ := json.MarshalIndent(room, "", "\t")
+			client.Emit("updateRoomUsage", response{
+				Code: 200,
+			})
+		case repositories.ErrRoomNotFound:
+			client.Emit("updateRoomUsage", response{
+				Code:    404,
+				Message: "No room found under given id: " + updateRoomUsageMessage.Username,
+			})
+		default:
+			client.Emit("updateRoomUsage", response{
+				Code:    500,
+				Message: "Internal server error: " + err.Error(),
+			})
+		}
+	})
+
+	api.PreServerShutdown = func() {
+		// hub.Shutdown()
+	}
 
 	api.ServerShutdown = func() {}
 
-	return setupGlobalMiddleware(api)(api.Serve(setupMiddlewares(api)))
+	return loggerMiddleware(api,
+		fileServerMiddleware(
+			wsMiddleware(
+				api.Serve(func(next http.Handler) http.Handler {
+					return next
+				}),
+			),
+		),
+	)
 }
 
 // The TLS configuration before HTTPS server starts.
@@ -290,13 +712,6 @@ var serverAddress string
 func configureServer(s *http.Server, scheme, addr string) {
 	serverAddress = scheme + "://" + addr
 }
-
-// The middleware configuration is for the handler executors. These do not apply to the swagger.json document.
-// The middleware executes after routing but before authentication, binding and validation.
-func setupMiddlewares(api *operations.OffTimeAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler { return next }
-}
-
 func loggerMiddleware(api *operations.OffTimeAPI, next http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(rw http.ResponseWriter, r *http.Request) {
@@ -310,6 +725,7 @@ var imageStoragePath string
 var imageServingRoute string
 
 func fileServerMiddleware(next http.Handler) http.Handler {
+
 	fileServer := http.StripPrefix(imageServingRoute, http.FileServer(http.Dir(imageStoragePath)))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, imageServingRoute) {
@@ -318,14 +734,6 @@ func fileServerMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		}
 	})
-}
-
-// The middleware configuration happens before anything, this middleware also applies to serving the swagger.json document.
-// So this is a good place to plug in a panic handling middleware, logging and metrics.
-func setupGlobalMiddleware(api *operations.OffTimeAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return loggerMiddleware(api, fileServerMiddleware(next))
-	}
 }
 
 // TODO: research if saving to temp file is better than holding in memory
@@ -386,9 +794,137 @@ func saveTempImagePermanentlyToPath(tmpFile *os.File, path string) error {
 }
 
 func generateFileNameForStorage(fileName, prefix string) string {
-	return prefix + "." + uuid.New().String() + "." + fileName
+	return prefix + "." + uuid.NewV4().String() + "." + fileName
 }
 
 func urlFromFilename(fileName string) string {
 	return serverAddress + imageServingRoute + url.PathEscape(fileName)
 }
+
+var doc = template.Must(template.New("root").Parse(html))
+
+const (
+	html = `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Chat Example</title>
+    <script type="text/javascript">
+        window.onload = function () {
+            var conn;
+            var msg = document.getElementById("msg");
+            var evt = document.getElementById("evt");
+            var log = document.getElementById("log");
+            if (!msg || !evt || !log) {
+                console.error("elements not found")
+            }
+
+            function appendLog(item) {
+                var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
+                log.appendChild(item);
+                if (doScroll) {
+                    log.scrollTop = log.scrollHeight - log.clientHeight;
+                }
+            }
+
+            document.getElementById("form").onsubmit = function () {
+                try {
+                    if (!conn) {
+                        console.log("no connection found");
+                        return false;
+                    }
+                    if (!msg.value) {
+                        console.log("msg box empty");
+                        return false;
+                    }
+                    if (!evt.value) {
+                        console.log("evt box empty");
+                        return false;
+                    }
+                    msg.value = msg.value.trim();
+                    evt.value = evt.value.trim();
+                    const message = JSON.stringify({
+                        event: evt.value,
+                        data: msg.value[0] == '{' ? JSON.parse(msg.value) : msg.value
+                    })
+                    console.log("sending msg: \n" + message)
+                    conn.send(message);
+                } catch (e) {
+                    console.error("error")
+                    console.error(e)
+                }
+                return false;
+            };
+
+            if (window["WebSocket"]) {
+                conn = new WebSocket("ws://" + document.location.host + "/ws");
+                conn.onclose = function (evt) {
+                    var item = document.createElement("div");
+                    item.innerHTML = "<b>Connection closed.</b>";
+                    appendLog(item);
+                };
+                conn.onmessage = function (evt) {
+                    // var message = JSON.parse(evt);
+                    console.log("msg recieved");
+                    console.log(evt)
+                    var item = document.createElement("div");
+                    item.innerText = evt.data;
+                    appendLog(item);
+                };
+            } else {
+                var item = document.createElement("div");
+                item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
+                appendLog(item);
+            }
+        };
+    </script>
+    <style type="text/css">
+        html {
+            overflow: hidden;
+        }
+
+        body {
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background: gray;
+        }
+
+        #log {
+            background: white;
+            margin: 0;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            position: absolute;
+            top: 0.5em;
+            left: 0.5em;
+            right: 0.5em;
+            bottom: 3em;
+            overflow: auto;
+        }
+
+        #form {
+            padding: 0 0.5em 0 0.5em;
+            margin: 0;
+            position: absolute;
+            bottom: 1em;
+            left: 0px;
+            width: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="log"></div>
+    <form id="form">
+        <input type="submit" value="Send" />
+        <input style="display: inline-block;" type="text" id="evt" size="64" autofocus />
+        <input style="display: inline-block;" type="text" id="msg" size="64" autofocus />
+    </form>
+</body>
+
+</html>
+`
+)
