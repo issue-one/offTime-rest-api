@@ -170,6 +170,8 @@ paths:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/skipParam'
       responses:
+        '404':
+          $ref: '#/responses/NotFound'
         '400':
           $ref: '#/responses/BadInput'
         '500':

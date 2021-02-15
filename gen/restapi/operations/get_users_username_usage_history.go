@@ -136,6 +136,46 @@ func (o *GetUsersUsernameUsageHistoryInternalServerErrorBody) UnmarshalBinary(b 
 	return nil
 }
 
+// GetUsersUsernameUsageHistoryNotFoundBody get users username usage history not found body
+//
+// swagger:model GetUsersUsernameUsageHistoryNotFoundBody
+type GetUsersUsernameUsageHistoryNotFoundBody struct {
+
+	// May be null.
+	Entity string `json:"entity,omitempty"`
+
+	// May be null.
+	Identifer string `json:"identifer,omitempty"`
+}
+
+// Validate validates this get users username usage history not found body
+func (o *GetUsersUsernameUsageHistoryNotFoundBody) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this get users username usage history not found body based on context it is used
+func (o *GetUsersUsernameUsageHistoryNotFoundBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *GetUsersUsernameUsageHistoryNotFoundBody) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *GetUsersUsernameUsageHistoryNotFoundBody) UnmarshalBinary(b []byte) error {
+	var res GetUsersUsernameUsageHistoryNotFoundBody
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}
+
 // GetUsersUsernameUsageHistoryOKBody get users username usage history o k body
 //
 // swagger:model GetUsersUsernameUsageHistoryOKBody

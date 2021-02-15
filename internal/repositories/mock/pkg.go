@@ -87,3 +87,27 @@ var (
 		UpdatedAt: strfmt.DateTime(time.Now().Round(0)),
 	}
 )
+
+var (
+	AppUsage01 = models.AppUsage{
+		AppName:        "Telegram",
+		AppPackageName: "com.telegram.messenger",
+		CreatedAt:      strfmt.DateTime(time.Now().Round(0)),
+		DateOfUse:      strfmt.Date(time.Now().Round(0)),
+		TimeDuration:   int64(time.Minute * 45),
+	}
+	AppUsage02 = models.AppUsage{
+		AppName:        "RedReader",
+		AppPackageName: "org.quantumbadgner.redreader",
+		CreatedAt:      strfmt.DateTime(time.Now().Round(0)),
+		DateOfUse:      strfmt.Date(time.Now().Round(0)),
+		TimeDuration:   int64(time.Minute * 45),
+	}
+	AppUsage03 = models.AppUsage{
+		AppName:        "Xender",
+		AppPackageName: "cn.xender",
+		CreatedAt:      strfmt.DateTime(time.Now().Round(0)),
+		DateOfUse:      strfmt.Date(time.Now().Round(0)),
+		TimeDuration:   int64(time.Minute * 45),
+	}
+)

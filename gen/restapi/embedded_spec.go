@@ -358,6 +358,9 @@ func init() {
           "400": {
             "$ref": "#/responses/BadInput"
           },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
           "500": {
             "$ref": "#/responses/ServerError"
           }
@@ -1234,6 +1237,21 @@ func init() {
             "schema": {
               "properties": {
                 "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
                   "type": "string"
                 }
               }

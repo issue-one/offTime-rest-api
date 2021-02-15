@@ -99,6 +99,50 @@ func (o *GetUsersUsernameUsageHistoryBadRequest) WriteResponse(rw http.ResponseW
 	}
 }
 
+// GetUsersUsernameUsageHistoryNotFoundCode is the HTTP code returned for type GetUsersUsernameUsageHistoryNotFound
+const GetUsersUsernameUsageHistoryNotFoundCode int = 404
+
+/*GetUsersUsernameUsageHistoryNotFound Entity not found.
+
+swagger:response getUsersUsernameUsageHistoryNotFound
+*/
+type GetUsersUsernameUsageHistoryNotFound struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *GetUsersUsernameUsageHistoryNotFoundBody `json:"body,omitempty"`
+}
+
+// NewGetUsersUsernameUsageHistoryNotFound creates GetUsersUsernameUsageHistoryNotFound with default headers values
+func NewGetUsersUsernameUsageHistoryNotFound() *GetUsersUsernameUsageHistoryNotFound {
+
+	return &GetUsersUsernameUsageHistoryNotFound{}
+}
+
+// WithPayload adds the payload to the get users username usage history not found response
+func (o *GetUsersUsernameUsageHistoryNotFound) WithPayload(payload *GetUsersUsernameUsageHistoryNotFoundBody) *GetUsersUsernameUsageHistoryNotFound {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get users username usage history not found response
+func (o *GetUsersUsernameUsageHistoryNotFound) SetPayload(payload *GetUsersUsernameUsageHistoryNotFoundBody) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *GetUsersUsernameUsageHistoryNotFound) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(404)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
+
 // GetUsersUsernameUsageHistoryInternalServerErrorCode is the HTTP code returned for type GetUsersUsernameUsageHistoryInternalServerError
 const GetUsersUsernameUsageHistoryInternalServerErrorCode int = 500
 

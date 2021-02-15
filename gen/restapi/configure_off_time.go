@@ -72,6 +72,8 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 	}
 	roomRepo := mock.NewMockRoomRepository()
 
+	usageRepo := mock.NewMockAppUsageRepository()
+
 	// USER handlers
 	api.PutUsersUsernameHandler = operations.PutUsersUsernameHandlerFunc(
 		func(params operations.PutUsersUsernameParams) middleware.Responder {
@@ -266,23 +268,76 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 		})
 
 	// USAGE handlers
-	if api.GetUsersUsernameUsageHistoryHandler == nil {
-		api.GetUsersUsernameUsageHistoryHandler = operations.GetUsersUsernameUsageHistoryHandlerFunc(func(params operations.GetUsersUsernameUsageHistoryParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetUsersUsernameUsageHistory has not yet been implemented")
-		})
-	}
 
-	if api.PostUsersUsernameUsageHistoryHandler == nil {
-		api.PostUsersUsernameUsageHistoryHandler = operations.PostUsersUsernameUsageHistoryHandlerFunc(func(params operations.PostUsersUsernameUsageHistoryParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostUsersUsernameUsageHistory has not yet been implemented")
+	api.GetUsersUsernameUsageHistoryHandler = operations.GetUsersUsernameUsageHistoryHandlerFunc(
+		func(params operations.GetUsersUsernameUsageHistoryParams) middleware.Responder {
+			found, err := userRepo.IsUsernameOccupied(context.TODO(), params.Username)
+			if err != nil {
+				return operations.NewGetUsersUsernameUsageHistoryInternalServerError().WithPayload(
+					&operations.GetUsersUsernameUsageHistoryInternalServerErrorBody{Message: err.Error()},
+				)
+			}
+			if !found {
+				return operations.NewGetUsersUsernameUsageHistoryNotFound().WithPayload(
+					&operations.GetUsersUsernameUsageHistoryNotFoundBody{
+						Entity: "User", Identifer: params.Username,
+					},
+				)
+			}
+			usages, totalCount, err := usageRepo.GetAllAppUsages(params.HTTPRequest.Context(), params.Username, *params.Limit, *params.Offset)
+			if err != nil {
+				return operations.NewGetUsersUsernameUsageHistoryInternalServerError().WithPayload(
+					&operations.GetUsersUsernameUsageHistoryInternalServerErrorBody{Message: err.Error()},
+				)
+			}
+			return operations.NewGetUsersUsernameUsageHistoryOK().WithPayload(
+				&operations.GetUsersUsernameUsageHistoryOKBody{
+					Items:      usages,
+					TotalCount: int64(totalCount),
+				},
+			)
 		})
-	}
 
-	if api.DeleteUsersUsernameUsageHistoryHandler == nil {
-		api.DeleteUsersUsernameUsageHistoryHandler = operations.DeleteUsersUsernameUsageHistoryHandlerFunc(func(params operations.DeleteUsersUsernameUsageHistoryParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.DeleteUsersUsernameUsageHistory has not yet been implemented")
-		})
-	}
+	api.PostUsersUsernameUsageHistoryHandler = operations.PostUsersUsernameUsageHistoryHandlerFunc(
+		func(params operations.PostUsersUsernameUsageHistoryParams) middleware.Responder {
+			found, err := userRepo.IsUsernameOccupied(context.TODO(), params.Username)
+			if err != nil {
+				return operations.NewGetUsersUsernameUsageHistoryInternalServerError().WithPayload(
+					&operations.GetUsersUsernameUsageHistoryInternalServerErrorBody{Message: err.Error()},
+				)
+			}
+			if !found {
+				return operations.NewGetUsersUsernameUsageHistoryNotFound().WithPayload(
+					&operations.GetUsersUsernameUsageHistoryNotFoundBody{
+						Entity: "User", Identifer: params.Username,
+					},
+				)
+			}
+			usage, err := usageRepo.CreateAppUsage(context.TODO(), params.Username, params.Body)
+			switch err {
+			case nil:
+				return operations.NewPostUsersUsernameUsageHistoryOK().WithPayload(
+					usage,
+				)
+			default:
+				return operations.NewGetUsersUsernameUsageHistoryInternalServerError().WithPayload(
+					&operations.GetUsersUsernameUsageHistoryInternalServerErrorBody{Message: err.Error()},
+				)
+			}
+		},
+	)
+
+	api.DeleteUsersUsernameUsageHistoryHandler = operations.DeleteUsersUsernameUsageHistoryHandlerFunc(
+		func(params operations.DeleteUsersUsernameUsageHistoryParams) middleware.Responder {
+			err := usageRepo.DeleteAppUsages(params.HTTPRequest.Context(), params.Username)
+			if err != nil {
+				return operations.NewDeleteUsersUsernameUsageHistoryInternalServerError().WithPayload(
+					&operations.DeleteUsersUsernameUsageHistoryInternalServerErrorBody{Message: err.Error()},
+				)
+			}
+			return operations.NewDeleteUsersUsernameUsageHistoryOK()
+		},
+	)
 
 	// ROOM handlers
 	api.GetRoomsHandler = operations.GetRoomsHandlerFunc(
