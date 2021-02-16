@@ -210,6 +210,30 @@ paths:
           schema:
             $ref: '#/definitions/AppUsage'
   '/rooms':
+    post:
+      produces:
+        - application/json
+      parameters: 
+        - in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              roomName:
+                type: string
+              username:
+                type: string
+      responses:
+        '404':
+          $ref: '#/responses/NotFound'
+        '400':
+          $ref: '#/responses/BadInput'
+        '500':
+          $ref: '#/responses/ServerError'
+        '200':
+          description: 'Successful POSTing rooms'
+          schema:
+            $ref: '#/definitions/Room'
     get:
       produces:
         - application/json
@@ -246,6 +270,35 @@ paths:
           $ref: '#/responses/NotFound'
         '200':
           description: Success GETting room under roomID.
+          schema:
+            $ref: '#/definitions/Room'  
+  '/rooms/{roomID}/userUsages':
+    parameters:
+      - $ref: '#/parameters/roomIdParam'
+    post:
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: username
+          type: string
+          minLength: 5
+          required: true
+        - in: query
+          name: seconds
+          type: integer
+          required: true
+      responses:
+        '422':
+          description: Room is ongoing.
+        '400':
+          $ref: '#/responses/BadInput'
+        '500':
+          $ref: '#/responses/ServerError'
+        '404':
+          $ref: '#/responses/NotFound'
+        '200':
+          description: Success adding usageSeconds to Room.
           schema:
             $ref: '#/definitions/Room'
 definitions:

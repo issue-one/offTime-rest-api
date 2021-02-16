@@ -73,6 +73,12 @@ func NewOffTimeAPI(spec *loads.Document) *OffTimeAPI {
 		PatchUsersUsernameHandler: PatchUsersUsernameHandlerFunc(func(params PatchUsersUsernameParams) middleware.Responder {
 			return middleware.NotImplemented("operation PatchUsersUsername has not yet been implemented")
 		}),
+		PostRoomsHandler: PostRoomsHandlerFunc(func(params PostRoomsParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostRooms has not yet been implemented")
+		}),
+		PostRoomsRoomIDUserUsagesHandler: PostRoomsRoomIDUserUsagesHandlerFunc(func(params PostRoomsRoomIDUserUsagesParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostRoomsRoomIDUserUsages has not yet been implemented")
+		}),
 		PostUsersUsernameUsageHistoryHandler: PostUsersUsernameUsageHistoryHandlerFunc(func(params PostUsersUsernameUsageHistoryParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostUsersUsernameUsageHistory has not yet been implemented")
 		}),
@@ -141,6 +147,10 @@ type OffTimeAPI struct {
 	GetUsersUsernameUsageHistoryHandler GetUsersUsernameUsageHistoryHandler
 	// PatchUsersUsernameHandler sets the operation handler for the patch users username operation
 	PatchUsersUsernameHandler PatchUsersUsernameHandler
+	// PostRoomsHandler sets the operation handler for the post rooms operation
+	PostRoomsHandler PostRoomsHandler
+	// PostRoomsRoomIDUserUsagesHandler sets the operation handler for the post rooms room ID user usages operation
+	PostRoomsRoomIDUserUsagesHandler PostRoomsRoomIDUserUsagesHandler
 	// PostUsersUsernameUsageHistoryHandler sets the operation handler for the post users username usage history operation
 	PostUsersUsernameUsageHistoryHandler PostUsersUsernameUsageHistoryHandler
 	// PutUsersUsernameHandler sets the operation handler for the put users username operation
@@ -256,6 +266,12 @@ func (o *OffTimeAPI) Validate() error {
 	}
 	if o.PatchUsersUsernameHandler == nil {
 		unregistered = append(unregistered, "PatchUsersUsernameHandler")
+	}
+	if o.PostRoomsHandler == nil {
+		unregistered = append(unregistered, "PostRoomsHandler")
+	}
+	if o.PostRoomsRoomIDUserUsagesHandler == nil {
+		unregistered = append(unregistered, "PostRoomsRoomIDUserUsagesHandler")
 	}
 	if o.PostUsersUsernameUsageHistoryHandler == nil {
 		unregistered = append(unregistered, "PostUsersUsernameUsageHistoryHandler")
@@ -396,6 +412,14 @@ func (o *OffTimeAPI) initHandlerCache() {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
 	o.handlers["PATCH"]["/users/{username}"] = NewPatchUsersUsername(o.context, o.PatchUsersUsernameHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/rooms"] = NewPostRooms(o.context, o.PostRoomsHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/rooms/{roomID}/userUsages"] = NewPostRoomsRoomIDUserUsages(o.context, o.PostRoomsRoomIDUserUsagesHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

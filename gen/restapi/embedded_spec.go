@@ -62,6 +62,45 @@ func init() {
             "$ref": "#/responses/ServerError"
           }
         }
+      },
+      "post": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "roomName": {
+                  "type": "string"
+                },
+                "username": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful POSTing rooms",
+            "schema": {
+              "$ref": "#/definitions/Room"
+            }
+          },
+          "400": {
+            "$ref": "#/responses/BadInput"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
       }
     },
     "/rooms/{roomID}": {
@@ -78,6 +117,53 @@ func init() {
           },
           "404": {
             "$ref": "#/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/roomIdParam"
+        }
+      ]
+    },
+    "/rooms/{roomID}/userUsages": {
+      "post": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "minLength": 5,
+            "type": "string",
+            "name": "username",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "seconds",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success adding usageSeconds to Room.",
+            "schema": {
+              "$ref": "#/definitions/Room"
+            }
+          },
+          "400": {
+            "$ref": "#/responses/BadInput"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "422": {
+            "description": "Room is ongoing."
           },
           "500": {
             "$ref": "#/responses/ServerError"
@@ -733,6 +819,71 @@ func init() {
             }
           }
         }
+      },
+      "post": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "roomName": {
+                  "type": "string"
+                },
+                "username": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful POSTing rooms",
+            "schema": {
+              "$ref": "#/definitions/Room"
+            }
+          },
+          "400": {
+            "description": "Illegal input for operation.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/rooms/{roomID}": {
@@ -761,6 +912,83 @@ func init() {
                 }
               }
             }
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "name": "roomID",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/rooms/{roomID}/userUsages": {
+      "post": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "minLength": 5,
+            "type": "string",
+            "name": "username",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "seconds",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success adding usageSeconds to Room.",
+            "schema": {
+              "$ref": "#/definitions/Room"
+            }
+          },
+          "400": {
+            "description": "Illegal input for operation.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Room is ongoing."
           },
           "500": {
             "description": "Server error.",

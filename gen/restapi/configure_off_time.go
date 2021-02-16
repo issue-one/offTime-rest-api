@@ -358,6 +358,127 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 				},
 			)
 		})
+	api.PostRoomsHandler = operations.PostRoomsHandlerFunc(
+		func(params operations.PostRoomsParams) middleware.Responder {
+			found, err := userRepo.IsUsernameOccupied(context.TODO(), params.Body.Username)
+			if err != nil {
+				return operations.NewPostRoomsInternalServerError().WithPayload(
+					&operations.PostRoomsInternalServerErrorBody{
+						Message: err.Error(),
+					},
+				)
+			}
+			if !found {
+				return operations.NewPostRoomsNotFound().WithPayload(
+					&operations.PostRoomsNotFoundBody{
+						Entity:    "User",
+						Identifer: params.Body.Username,
+					},
+				)
+			}
+			room, err := roomRepo.CreateRoom(context.TODO(), params.Body.Username, params.Body.RoomName)
+			if err != nil {
+				return operations.NewPostRoomsInternalServerError().WithPayload(
+					&operations.PostRoomsInternalServerErrorBody{
+						Message: err.Error(),
+					},
+				)
+			}
+			// FIXME: remove me when moving over to gORM
+			{
+				user, err := userRepo.GetUser(context.TODO(), params.Body.Username)
+				if err != nil {
+					return operations.NewPostRoomsInternalServerError().WithPayload(
+						&operations.PostRoomsInternalServerErrorBody{
+							Message: err.Error(),
+						},
+					)
+				}
+				user.RoomHistory = append(user.RoomHistory, room.ID)
+			}
+			return operations.NewPostRoomsOK().WithPayload(
+				room,
+			)
+		},
+	)
+
+	api.PostRoomsRoomIDUserUsagesHandler = operations.PostRoomsRoomIDUserUsagesHandlerFunc(
+		func(params operations.PostRoomsRoomIDUserUsagesParams) middleware.Responder {
+			{
+				// check if user exists
+				found, err := userRepo.IsUsernameOccupied(context.TODO(), params.Username)
+				if err != nil {
+					return operations.NewPostRoomsRoomIDUserUsagesInternalServerError().WithPayload(
+						&operations.PostRoomsRoomIDUserUsagesInternalServerErrorBody{
+							Message: err.Error(),
+						},
+					)
+				}
+				if !found {
+					return operations.NewPostRoomsRoomIDUserUsagesNotFound().WithPayload(
+						&operations.PostRoomsRoomIDUserUsagesNotFoundBody{
+							Entity:    "User",
+							Identifer: params.Username,
+						},
+					)
+				}
+			}
+			// check if room is ongoing
+			{
+				room, err := roomRepo.GetRoom(context.TODO(), strfmt.UUID(params.RoomID))
+				switch err {
+				case nil:
+					if !room.EndTime.Equal(strfmt.DateTime{}) {
+						return operations.NewPostRoomsRoomIDUserUsagesUnprocessableEntity()
+					}
+				case repositories.ErrRoomNotFound:
+					return operations.NewPostRoomsRoomIDUserUsagesNotFound().WithPayload(
+						&operations.PostRoomsRoomIDUserUsagesNotFoundBody{
+							Entity:    "Room",
+							Identifer: params.RoomID.String(),
+						},
+					)
+				default:
+					return operations.NewPostRoomsRoomIDUserUsagesInternalServerError().WithPayload(
+						&operations.PostRoomsRoomIDUserUsagesInternalServerErrorBody{
+							Message: err.Error(),
+						},
+					)
+				}
+			}
+			if params.Seconds < 1 {
+				return operations.NewPostRoomsRoomIDUserUsagesBadRequest().WithPayload(
+					&operations.PostRoomsRoomIDUserUsagesBadRequestBody{
+						Message: "second should be greater than 0",
+					},
+				)
+			}
+			room, err := roomRepo.UpdateRoomUserUsages(
+				context.TODO(),
+				params.RoomID,
+				&map[string]int64{
+					params.Username: params.Seconds,
+				},
+			)
+			switch err {
+			case nil:
+				return operations.NewPostRoomsRoomIDUserUsagesOK().WithPayload(room)
+			case repositories.ErrRoomNotFound:
+				return operations.NewPostRoomsRoomIDUserUsagesNotFound().WithPayload(
+					&operations.PostRoomsRoomIDUserUsagesNotFoundBody{
+						Entity:    "Room",
+						Identifer: params.RoomID.String(),
+					},
+				)
+			default:
+				return operations.NewPostRoomsRoomIDUserUsagesInternalServerError().WithPayload(
+					&operations.PostRoomsRoomIDUserUsagesInternalServerErrorBody{
+						Message: err.Error(),
+					},
+				)
+			}
+		},
+	)
 
 	api.GetRoomsRoomIDHandler = operations.GetRoomsRoomIDHandlerFunc(
 		func(params operations.GetRoomsRoomIDParams) middleware.Responder {
