@@ -55,6 +55,30 @@ func (o *GetUsersOK) WriteResponse(rw http.ResponseWriter, producer runtime.Prod
 	}
 }
 
+// GetUsersUnauthorizedCode is the HTTP code returned for type GetUsersUnauthorized
+const GetUsersUnauthorizedCode int = 401
+
+/*GetUsersUnauthorized Unauthorized.
+
+swagger:response getUsersUnauthorized
+*/
+type GetUsersUnauthorized struct {
+}
+
+// NewGetUsersUnauthorized creates GetUsersUnauthorized with default headers values
+func NewGetUsersUnauthorized() *GetUsersUnauthorized {
+
+	return &GetUsersUnauthorized{}
+}
+
+// WriteResponse to the client
+func (o *GetUsersUnauthorized) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
+	rw.WriteHeader(401)
+}
+
 // GetUsersNotFoundCode is the HTTP code returned for type GetUsersNotFound
 const GetUsersNotFoundCode int = 404
 

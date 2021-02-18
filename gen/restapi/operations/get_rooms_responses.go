@@ -99,6 +99,54 @@ func (o *GetRoomsBadRequest) WriteResponse(rw http.ResponseWriter, producer runt
 	}
 }
 
+// GetRoomsUnauthorizedCode is the HTTP code returned for type GetRoomsUnauthorized
+const GetRoomsUnauthorizedCode int = 401
+
+/*GetRoomsUnauthorized Unauthorized.
+
+swagger:response getRoomsUnauthorized
+*/
+type GetRoomsUnauthorized struct {
+}
+
+// NewGetRoomsUnauthorized creates GetRoomsUnauthorized with default headers values
+func NewGetRoomsUnauthorized() *GetRoomsUnauthorized {
+
+	return &GetRoomsUnauthorized{}
+}
+
+// WriteResponse to the client
+func (o *GetRoomsUnauthorized) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
+	rw.WriteHeader(401)
+}
+
+// GetRoomsForbiddenCode is the HTTP code returned for type GetRoomsForbidden
+const GetRoomsForbiddenCode int = 403
+
+/*GetRoomsForbidden Forbidden.
+
+swagger:response getRoomsForbidden
+*/
+type GetRoomsForbidden struct {
+}
+
+// NewGetRoomsForbidden creates GetRoomsForbidden with default headers values
+func NewGetRoomsForbidden() *GetRoomsForbidden {
+
+	return &GetRoomsForbidden{}
+}
+
+// WriteResponse to the client
+func (o *GetRoomsForbidden) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
+	rw.WriteHeader(403)
+}
+
 // GetRoomsInternalServerErrorCode is the HTTP code returned for type GetRoomsInternalServerError
 const GetRoomsInternalServerErrorCode int = 500
 

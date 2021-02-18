@@ -1,5 +1,5 @@
 swagger generate server \
  -f swagger.yaml\
  -t gen \
- --exclude-main
-#  -P User \
+ --exclude-main \
+ -P models.User \

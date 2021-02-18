@@ -15,7 +15,7 @@ type appUsageRepo struct {
 	usages map[string]map[string]*models.AppUsage
 }
 
-func AppUsageId(u *models.AppUsage) string {
+func AppUsageID(u *models.AppUsage) string {
 	return u.AppPackageName + u.DateOfUse.String()
 }
 
@@ -23,14 +23,14 @@ func NewMockAppUsageRepository() repositories.AppUsage {
 	return appUsageRepo{
 		mutex: &sync.RWMutex{},
 		usages: map[string]map[string]*models.AppUsage{
-			User01.Username: map[string]*models.AppUsage{
-				AppUsageId(&AppUsage01): &AppUsage01,
+			User01.Username: {
+				AppUsageID(&AppUsage01): &AppUsage01,
 			},
-			User02.Username: map[string]*models.AppUsage{
-				AppUsageId(&AppUsage02): &AppUsage02,
+			User02.Username: {
+				AppUsageID(&AppUsage02): &AppUsage02,
 			},
-			User03.Username: map[string]*models.AppUsage{
-				AppUsageId(&AppUsage03): &AppUsage03,
+			User03.Username: {
+				AppUsageID(&AppUsage03): &AppUsage03,
 			},
 		},
 	}
@@ -43,14 +43,14 @@ func NewMockAppUsageRepositoryCopyEntities() repositories.AppUsage {
 	return appUsageRepo{
 		mutex: &sync.RWMutex{},
 		usages: map[string]map[string]*models.AppUsage{
-			User01.Username: map[string]*models.AppUsage{
-				AppUsageId(&usage01Copy): &usage01Copy,
+			User01.Username: {
+				AppUsageID(&usage01Copy): &usage01Copy,
 			},
-			User02.Username: map[string]*models.AppUsage{
-				AppUsageId(&usage02Copy): &usage02Copy,
+			User02.Username: {
+				AppUsageID(&usage02Copy): &usage02Copy,
 			},
-			User03.Username: map[string]*models.AppUsage{
-				AppUsageId(&usage03Copy): &usage03Copy,
+			User03.Username: {
+				AppUsageID(&usage03Copy): &usage03Copy,
 			},
 		},
 	}
@@ -79,7 +79,7 @@ func (r appUsageRepo) CreateAppUsage(ctx context.Context, username string, u *mo
 		usages = make(map[string]*models.AppUsage)
 		r.usages[username] = usages
 	}
-	usages[AppUsageId(&newAppUsage)] = &newAppUsage
+	usages[AppUsageID(&newAppUsage)] = &newAppUsage
 	copy := newAppUsage
 	return &copy, nil
 }

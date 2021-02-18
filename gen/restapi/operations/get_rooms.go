@@ -19,16 +19,16 @@ import (
 )
 
 // GetRoomsHandlerFunc turns a function with the right signature into a get rooms handler
-type GetRoomsHandlerFunc func(GetRoomsParams) middleware.Responder
+type GetRoomsHandlerFunc func(GetRoomsParams, *models.User) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetRoomsHandlerFunc) Handle(params GetRoomsParams) middleware.Responder {
-	return fn(params)
+func (fn GetRoomsHandlerFunc) Handle(params GetRoomsParams, principal *models.User) middleware.Responder {
+	return fn(params, principal)
 }
 
 // GetRoomsHandler interface for that can handle valid get rooms params
 type GetRoomsHandler interface {
-	Handle(GetRoomsParams) middleware.Responder
+	Handle(GetRoomsParams, *models.User) middleware.Responder
 }
 
 // NewGetRooms creates a new http.Handler for the get rooms operation
@@ -52,12 +52,25 @@ func (o *GetRooms) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		r = rCtx
 	}
 	var Params = NewGetRoomsParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		r = aCtx
+	}
+	var principal *models.User
+	if uprinc != nil {
+		principal = uprinc.(*models.User) // this is really a models.User, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }

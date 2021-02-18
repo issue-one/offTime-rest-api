@@ -54,7 +54,6 @@ func (r userRepo) CreateUser(ctx context.Context, username string, u *models.Cre
 	newUser := models.User{
 		Username:    username,
 		Email:       *u.Email,
-		Password:    *u.Password,
 		CreatedAt:   strfmt.DateTime(createdAt),
 		UpdatedAt:   strfmt.DateTime(createdAt),
 		PictureURL:  "",
@@ -72,8 +71,8 @@ func (r userRepo) GetUser(ctx context.Context, username string) (*models.User, e
 	if !ok {
 		return nil, repositories.ErrUserNotFound
 	}
-	copy := *user
-	return &copy, nil
+	// copy := *user
+	return user, nil
 }
 
 func (r userRepo) GetAllUsers(ctx context.Context, limit int64, offset int64) (items []*models.User, totalCount int, err error) {
@@ -110,9 +109,6 @@ func (r userRepo) UpdateUser(ctx context.Context, username string, u *models.Upd
 	}
 	if u.Email != "" {
 		oldUser.Email = u.Email
-	}
-	if u.Password != "" {
-		oldUser.Password = u.Password
 	}
 	copy := *oldUser
 	return &copy, nil

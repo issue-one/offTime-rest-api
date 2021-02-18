@@ -2,15 +2,18 @@ swagger: '2.0'
 info:
   title: offTime
   version: '1.0'
-# securityDefinitions:
-#   jwt:
-#     type: basic
+securityDefinitions:
+  jwt:
+    name: Authorization 
+    type: apiKey
+    in: header
     
-# security:
-#   - jwt: []
+security:
+  - jwt: []
 paths:
   '/users':
     get:
+      operationId: getUsers
       produces:
         - application/json
       parameters: 
@@ -32,14 +35,19 @@ paths:
           $ref: '#/responses/ServerError'
         '404':
           $ref: '#/responses/NotFound'
+        '401':
+          $ref: '#/responses/Unauthorized'
   '/users/{username}':
     parameters:
       - $ref: '#/parameters/usernameParam'
     get:
+      operationId: getUser
       produces:
         - application/json
       parameters: []
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
         '500':
           $ref: '#/responses/ServerError'
         '404':
@@ -49,6 +57,8 @@ paths:
           schema:
             $ref: '#/definitions/User'
     put:
+      operationId: putUser
+      security: []
       consumes:
         - application/json
       produces:
@@ -70,8 +80,11 @@ paths:
           $ref: '#/responses/BadInput'
         '500':
           $ref: '#/responses/ServerError'
+        '401':
+          $ref: '#/responses/Unauthorized'
       description: Create a User to the specifed username.
     patch:
+      operationId: patchUser
       consumes:
         - application/json
       produces:
@@ -83,6 +96,10 @@ paths:
           schema:
             $ref: '#/definitions/UpdateUserInput'
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/ServerError'
         '404':
@@ -96,8 +113,13 @@ paths:
           schema:
             $ref: '#/definitions/User'
     delete:
+      operationId: deleteUser
       parameters: []
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/ServerError'
         '200':
@@ -106,6 +128,7 @@ paths:
     parameters:
       - $ref: '#/parameters/usernameParam'
     put:
+      operationId: putUserPicture
       consumes:
         - multipart/form-data
       produces:
@@ -116,6 +139,10 @@ paths:
           type: file
           required: true
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/ServerError'
         '404':
@@ -132,9 +159,14 @@ paths:
     parameters:
       - $ref: '#/parameters/usernameParam'
     get:
+      operationId: getUserRoomHistory
       produces:
         - application/json
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '404':
           $ref: '#/responses/NotFound'
         '500':
@@ -146,30 +178,45 @@ paths:
             items:
               $ref: '#/definitions/Room'
     delete:
+      operationId: deleteUserRoomHistory
       produces:
         - application/json
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/ServerError'
         '200':
           description: Success DELETing User roomHistory.
-  '/users/{username}/usageHistory':
+  '/users/{username}/appUsageHistory':
     parameters:
       - $ref: '#/parameters/usernameParam'
     delete:
+      operationId: deleteAppUsageHistory
       parameters: []
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/ServerError'
         '200':
           description: Success DELETing User usageHistory.
     get:
+      operationId: getAppUsageHistory
       produces:
         - application/json
       parameters:  
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/skipParam'
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '404':
           $ref: '#/responses/NotFound'
         '400':
@@ -188,6 +235,7 @@ paths:
                 items:
                   $ref: '#/definitions/AppUsage'
     post:
+      operationId: postAppUsage
       consumes:
         - application/json
       parameters:
@@ -197,6 +245,10 @@ paths:
           schema:
             $ref: '#/definitions/CreateAppUsageInput'
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '400':
           $ref: '#/responses/BadInput'
         '404':
@@ -211,6 +263,9 @@ paths:
             $ref: '#/definitions/AppUsage'
   '/rooms':
     post:
+      operationId: postRoom
+      consumes:
+        - application/json
       produces:
         - application/json
       parameters: 
@@ -221,9 +276,13 @@ paths:
             properties:
               roomName:
                 type: string
-              username:
-                type: string
+            required: 
+              - roomName
       responses:
+        '403':
+          $ref: '#/responses/Forbidden'
+        '401':
+          $ref: '#/responses/Unauthorized'
         '404':
           $ref: '#/responses/NotFound'
         '400':
@@ -235,12 +294,17 @@ paths:
           schema:
             $ref: '#/definitions/Room'
     get:
+      operationId: getRooms
       produces:
         - application/json
       parameters: 
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/skipParam'
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '400':
           $ref: '#/responses/BadInput'
         '500':
@@ -260,10 +324,15 @@ paths:
     parameters:
       - $ref: '#/parameters/roomIdParam'
     get:
+      operationId: getRoom
       produces:
         - application/json
       parameters: []
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/ServerError'
         '404':
@@ -276,19 +345,19 @@ paths:
     parameters:
       - $ref: '#/parameters/roomIdParam'
     post:
+      operationId: postRoomUserUsages
       produces:
         - application/json
       parameters:
         - in: query
-          name: username
-          type: string
-          minLength: 5
-          required: true
-        - in: query
-          name: seconds
+          name: milliseconds
           type: integer
           required: true
       responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
         '422':
           description: Room is ongoing.
         '400':
@@ -301,6 +370,64 @@ paths:
           description: Success adding usageSeconds to Room.
           schema:
             $ref: '#/definitions/Room'
+  '/token-auth':
+    post:
+      operationId: postTokenAuth
+      security: []
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters: 
+        - in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              username:
+                type: string
+              password:
+                format: password
+                type: string
+      responses:
+        '403':
+          $ref: '#/responses/Forbidden'
+        '400':
+          $ref: '#/responses/BadInput'
+        '500':
+          $ref: '#/responses/ServerError'
+        '200':
+          description: 'Successful POSTing rooms'
+          schema:
+            properties:
+              expirse_in:
+                type: integer
+                format: seconds
+              token:
+                type: string
+                format: jwt
+  '/token-auth-refresh':
+    get:
+      operationId: getTokenAuthRefresh
+      produces:
+        - application/json
+      responses:
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '500':
+          $ref: '#/responses/ServerError'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '200':
+          description: 'Success refreshing token'
+          schema:
+            properties:
+              expirse_in:
+                type: integer
+                format: seconds
+              auth_token:
+                type: string
+                format: jwt
 definitions:
   User:
     properties:
@@ -317,9 +444,6 @@ definitions:
         type: string
       email:
         format: email
-        type: string
-      password:
-        format: password
         type: string
       pictureURL:
         example: http://pictureserver.com/picture102.png
@@ -423,6 +547,7 @@ definitions:
         type: object
         additionalProperties:
           type: integer
+          format: milliseconds
 parameters:
   roomIdParam:
     in: path
@@ -453,6 +578,10 @@ parameters:
     minimum: 0
     description: Number of items to skip.
 responses:
+  Forbidden:
+    description: Forbidden.
+  Unauthorized:
+    description: Unauthorized.
   ServerError:
     description: Server error.
     schema:

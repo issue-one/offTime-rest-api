@@ -29,6 +29,7 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "getRooms",
         "parameters": [
           {
             "$ref": "#/parameters/limitParam"
@@ -58,26 +59,36 @@ func init() {
           "400": {
             "$ref": "#/responses/BadInput"
           },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
           "500": {
             "$ref": "#/responses/ServerError"
           }
         }
       },
       "post": {
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],
+        "operationId": "postRoom",
         "parameters": [
           {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
+              "required": [
+                "roomName"
+              ],
               "properties": {
                 "roomName": {
-                  "type": "string"
-                },
-                "username": {
                   "type": "string"
                 }
               }
@@ -94,6 +105,12 @@ func init() {
           "400": {
             "$ref": "#/responses/BadInput"
           },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
           "404": {
             "$ref": "#/responses/NotFound"
           },
@@ -108,12 +125,19 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "getRoom",
         "responses": {
           "200": {
             "description": "Success GETting room under roomID.",
             "schema": {
               "$ref": "#/definitions/Room"
             }
+          },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
           },
           "404": {
             "$ref": "#/responses/NotFound"
@@ -134,17 +158,11 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "postRoomUserUsages",
         "parameters": [
           {
-            "minLength": 5,
-            "type": "string",
-            "name": "username",
-            "in": "query",
-            "required": true
-          },
-          {
             "type": "integer",
-            "name": "seconds",
+            "name": "milliseconds",
             "in": "query",
             "required": true
           }
@@ -158,6 +176,12 @@ func init() {
           },
           "400": {
             "$ref": "#/responses/BadInput"
+          },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
           },
           "404": {
             "$ref": "#/responses/NotFound"
@@ -176,11 +200,102 @@ func init() {
         }
       ]
     },
+    "/token-auth": {
+      "post": {
+        "security": [],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "postTokenAuth",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "format": "password"
+                },
+                "username": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful POSTing rooms",
+            "schema": {
+              "properties": {
+                "expirse_in": {
+                  "type": "integer",
+                  "format": "seconds"
+                },
+                "token": {
+                  "type": "string",
+                  "format": "jwt"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/responses/BadInput"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/token-auth-refresh": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "getTokenAuthRefresh",
+        "responses": {
+          "200": {
+            "description": "Success refreshing token",
+            "schema": {
+              "properties": {
+                "auth_token": {
+                  "type": "string",
+                  "format": "jwt"
+                },
+                "expirse_in": {
+                  "type": "integer",
+                  "format": "seconds"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    },
     "/users": {
       "get": {
         "produces": [
           "application/json"
         ],
+        "operationId": "getUsers",
         "parameters": [
           {
             "$ref": "#/parameters/limitParam"
@@ -207,6 +322,9 @@ func init() {
               }
             }
           },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
           "404": {
             "$ref": "#/responses/NotFound"
           },
@@ -221,12 +339,16 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "getUser",
         "responses": {
           "200": {
             "description": "Success GETting User under given username.",
             "schema": {
               "$ref": "#/definitions/User"
             }
+          },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
           },
           "404": {
             "$ref": "#/responses/NotFound"
@@ -237,6 +359,7 @@ func init() {
         }
       },
       "put": {
+        "security": [],
         "description": "Create a User to the specifed username.",
         "consumes": [
           "application/json"
@@ -244,6 +367,7 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "putUser",
         "parameters": [
           {
             "name": "body",
@@ -264,6 +388,9 @@ func init() {
           "400": {
             "$ref": "#/responses/BadInput"
           },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
           "409": {
             "$ref": "#/responses/Conflict"
           },
@@ -273,9 +400,16 @@ func init() {
         }
       },
       "delete": {
+        "operationId": "deleteUser",
         "responses": {
           "200": {
             "description": "Success DELETing user under given username"
+          },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
           },
           "500": {
             "$ref": "#/responses/ServerError"
@@ -289,6 +423,7 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "patchUser",
         "parameters": [
           {
             "name": "body",
@@ -309,6 +444,12 @@ func init() {
           "400": {
             "$ref": "#/responses/BadInput"
           },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
           "404": {
             "$ref": "#/responses/NotFound"
           },
@@ -326,95 +467,12 @@ func init() {
         }
       ]
     },
-    "/users/{username}/picture": {
-      "put": {
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "type": "file",
-            "name": "image",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success patching User.",
-            "schema": {
-              "type": "string",
-              "format": "url",
-              "example": "http://pictureserver.com/picture102.png"
-            }
-          },
-          "400": {
-            "$ref": "#/responses/BadInput"
-          },
-          "404": {
-            "$ref": "#/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/responses/ServerError"
-          }
-        }
-      },
-      "parameters": [
-        {
-          "$ref": "#/parameters/usernameParam"
-        }
-      ]
-    },
-    "/users/{username}/roomHistory": {
+    "/users/{username}/appUsageHistory": {
       "get": {
         "produces": [
           "application/json"
         ],
-        "responses": {
-          "200": {
-            "description": "Success gettin all Room history of User.",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Room"
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/responses/ServerError"
-          }
-        }
-      },
-      "delete": {
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success DELETing User roomHistory."
-          },
-          "500": {
-            "$ref": "#/responses/ServerError"
-          }
-        }
-      },
-      "parameters": [
-        {
-          "$ref": "#/parameters/usernameParam"
-        }
-      ]
-    },
-    "/users/{username}/usageHistory": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
+        "operationId": "getAppUsageHistory",
         "parameters": [
           {
             "$ref": "#/parameters/limitParam"
@@ -444,6 +502,12 @@ func init() {
           "400": {
             "$ref": "#/responses/BadInput"
           },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
           "404": {
             "$ref": "#/responses/NotFound"
           },
@@ -456,6 +520,7 @@ func init() {
         "consumes": [
           "application/json"
         ],
+        "operationId": "postAppUsage",
         "parameters": [
           {
             "name": "body",
@@ -476,6 +541,12 @@ func init() {
           "400": {
             "$ref": "#/responses/BadInput"
           },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
           "404": {
             "$ref": "#/responses/NotFound"
           },
@@ -488,9 +559,121 @@ func init() {
         }
       },
       "delete": {
+        "operationId": "deleteAppUsageHistory",
         "responses": {
           "200": {
             "description": "Success DELETing User usageHistory."
+          },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/usernameParam"
+        }
+      ]
+    },
+    "/users/{username}/picture": {
+      "put": {
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "putUserPicture",
+        "parameters": [
+          {
+            "type": "file",
+            "name": "image",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success patching User.",
+            "schema": {
+              "type": "string",
+              "format": "url",
+              "example": "http://pictureserver.com/picture102.png"
+            }
+          },
+          "400": {
+            "$ref": "#/responses/BadInput"
+          },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/usernameParam"
+        }
+      ]
+    },
+    "/users/{username}/roomHistory": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "getUserRoomHistory",
+        "responses": {
+          "200": {
+            "description": "Success gettin all Room history of User.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Room"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "delete": {
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "deleteUserRoomHistory",
+        "responses": {
+          "200": {
+            "description": "Success DELETing User roomHistory."
+          },
+          "401": {
+            "$ref": "#/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
           },
           "500": {
             "$ref": "#/responses/ServerError"
@@ -614,7 +797,8 @@ func init() {
         "userUsages": {
           "type": "object",
           "additionalProperties": {
-            "type": "integer"
+            "type": "integer",
+            "format": "milliseconds"
           }
         }
       }
@@ -641,10 +825,6 @@ func init() {
         "email": {
           "type": "string",
           "format": "email"
-        },
-        "password": {
-          "type": "string",
-          "format": "password"
         },
         "pictureURL": {
           "type": "string",
@@ -722,6 +902,9 @@ func init() {
         }
       }
     },
+    "Forbidden": {
+      "description": "Forbidden."
+    },
     "NotFound": {
       "description": "Entity not found.",
       "schema": {
@@ -746,8 +929,23 @@ func init() {
           }
         }
       }
+    },
+    "Unauthorized": {
+      "description": "Unauthorized."
     }
   },
+  "securityDefinitions": {
+    "jwt": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "jwt": []
+    }
+  ],
   "x-components": {}
 }`))
 	FlatSwaggerJSON = json.RawMessage([]byte(`{
@@ -762,6 +960,7 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "getRooms",
         "parameters": [
           {
             "minimum": 0,
@@ -808,6 +1007,12 @@ func init() {
               }
             }
           },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
+          },
           "500": {
             "description": "Server error.",
             "schema": {
@@ -821,20 +1026,24 @@ func init() {
         }
       },
       "post": {
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],
+        "operationId": "postRoom",
         "parameters": [
           {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
+              "required": [
+                "roomName"
+              ],
               "properties": {
                 "roomName": {
-                  "type": "string"
-                },
-                "username": {
                   "type": "string"
                 }
               }
@@ -857,6 +1066,12 @@ func init() {
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
           },
           "404": {
             "description": "Entity not found.",
@@ -891,12 +1106,19 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "getRoom",
         "responses": {
           "200": {
             "description": "Success GETting room under roomID.",
             "schema": {
               "$ref": "#/definitions/Room"
             }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
           },
           "404": {
             "description": "Entity not found.",
@@ -940,17 +1162,11 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "postRoomUserUsages",
         "parameters": [
           {
-            "minLength": 5,
-            "type": "string",
-            "name": "username",
-            "in": "query",
-            "required": true
-          },
-          {
             "type": "integer",
-            "name": "seconds",
+            "name": "milliseconds",
             "in": "query",
             "required": true
           }
@@ -971,6 +1187,12 @@ func init() {
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
           },
           "404": {
             "description": "Entity not found.",
@@ -1012,11 +1234,123 @@ func init() {
         }
       ]
     },
+    "/token-auth": {
+      "post": {
+        "security": [],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "postTokenAuth",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "format": "password"
+                },
+                "username": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful POSTing rooms",
+            "schema": {
+              "properties": {
+                "expirse_in": {
+                  "type": "integer",
+                  "format": "seconds"
+                },
+                "token": {
+                  "type": "string",
+                  "format": "jwt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Illegal input for operation.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden."
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/token-auth-refresh": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "getTokenAuthRefresh",
+        "responses": {
+          "200": {
+            "description": "Success refreshing token",
+            "schema": {
+              "properties": {
+                "auth_token": {
+                  "type": "string",
+                  "format": "jwt"
+                },
+                "expirse_in": {
+                  "type": "integer",
+                  "format": "seconds"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users": {
       "get": {
         "produces": [
           "application/json"
         ],
+        "operationId": "getUsers",
         "parameters": [
           {
             "minimum": 0,
@@ -1053,6 +1387,9 @@ func init() {
               }
             }
           },
+          "401": {
+            "description": "Unauthorized."
+          },
           "404": {
             "description": "Entity not found.",
             "schema": {
@@ -1086,12 +1423,16 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "getUser",
         "responses": {
           "200": {
             "description": "Success GETting User under given username.",
             "schema": {
               "$ref": "#/definitions/User"
             }
+          },
+          "401": {
+            "description": "Unauthorized."
           },
           "404": {
             "description": "Entity not found.",
@@ -1121,6 +1462,7 @@ func init() {
         }
       },
       "put": {
+        "security": [],
         "description": "Create a User to the specifed username.",
         "consumes": [
           "application/json"
@@ -1128,6 +1470,7 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "putUser",
         "parameters": [
           {
             "name": "body",
@@ -1155,6 +1498,9 @@ func init() {
               }
             }
           },
+          "401": {
+            "description": "Unauthorized."
+          },
           "409": {
             "description": "Field occupied.",
             "schema": {
@@ -1178,9 +1524,16 @@ func init() {
         }
       },
       "delete": {
+        "operationId": "deleteUser",
         "responses": {
           "200": {
             "description": "Success DELETing user under given username"
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
           },
           "500": {
             "description": "Server error.",
@@ -1201,6 +1554,7 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "operationId": "patchUser",
         "parameters": [
           {
             "name": "body",
@@ -1228,6 +1582,12 @@ func init() {
               }
             }
           },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
+          },
           "404": {
             "description": "Entity not found.",
             "schema": {
@@ -1275,155 +1635,12 @@ func init() {
         }
       ]
     },
-    "/users/{username}/picture": {
-      "put": {
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "type": "file",
-            "name": "image",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success patching User.",
-            "schema": {
-              "type": "string",
-              "format": "url",
-              "example": "http://pictureserver.com/picture102.png"
-            }
-          },
-          "400": {
-            "description": "Illegal input for operation.",
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Entity not found.",
-            "schema": {
-              "properties": {
-                "entity": {
-                  "description": "May be null.",
-                  "type": "string"
-                },
-                "identifer": {
-                  "description": "May be null.",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error.",
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "parameters": [
-        {
-          "minLength": 5,
-          "type": "string",
-          "name": "username",
-          "in": "path",
-          "required": true
-        }
-      ]
-    },
-    "/users/{username}/roomHistory": {
+    "/users/{username}/appUsageHistory": {
       "get": {
         "produces": [
           "application/json"
         ],
-        "responses": {
-          "200": {
-            "description": "Success gettin all Room history of User.",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Room"
-              }
-            }
-          },
-          "404": {
-            "description": "Entity not found.",
-            "schema": {
-              "properties": {
-                "entity": {
-                  "description": "May be null.",
-                  "type": "string"
-                },
-                "identifer": {
-                  "description": "May be null.",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error.",
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success DELETing User roomHistory."
-          },
-          "500": {
-            "description": "Server error.",
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "parameters": [
-        {
-          "minLength": 5,
-          "type": "string",
-          "name": "username",
-          "in": "path",
-          "required": true
-        }
-      ]
-    },
-    "/users/{username}/usageHistory": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
+        "operationId": "getAppUsageHistory",
         "parameters": [
           {
             "minimum": 0,
@@ -1470,6 +1687,12 @@ func init() {
               }
             }
           },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
+          },
           "404": {
             "description": "Entity not found.",
             "schema": {
@@ -1501,6 +1724,7 @@ func init() {
         "consumes": [
           "application/json"
         ],
+        "operationId": "postAppUsage",
         "parameters": [
           {
             "name": "body",
@@ -1527,6 +1751,12 @@ func init() {
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
           },
           "404": {
             "description": "Entity not found.",
@@ -1566,9 +1796,181 @@ func init() {
         }
       },
       "delete": {
+        "operationId": "deleteAppUsageHistory",
         "responses": {
           "200": {
             "description": "Success DELETing User usageHistory."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "minLength": 5,
+          "type": "string",
+          "name": "username",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/users/{username}/picture": {
+      "put": {
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "putUserPicture",
+        "parameters": [
+          {
+            "type": "file",
+            "name": "image",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success patching User.",
+            "schema": {
+              "type": "string",
+              "format": "url",
+              "example": "http://pictureserver.com/picture102.png"
+            }
+          },
+          "400": {
+            "description": "Illegal input for operation.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
+          },
+          "404": {
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "minLength": 5,
+          "type": "string",
+          "name": "username",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/users/{username}/roomHistory": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "getUserRoomHistory",
+        "responses": {
+          "200": {
+            "description": "Success gettin all Room history of User.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Room"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
+          },
+          "404": {
+            "description": "Entity not found.",
+            "schema": {
+              "properties": {
+                "entity": {
+                  "description": "May be null.",
+                  "type": "string"
+                },
+                "identifer": {
+                  "description": "May be null.",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "deleteUserRoomHistory",
+        "responses": {
+          "200": {
+            "description": "Success DELETing User roomHistory."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Forbidden."
           },
           "500": {
             "description": "Server error.",
@@ -1703,7 +2105,8 @@ func init() {
         "userUsages": {
           "type": "object",
           "additionalProperties": {
-            "type": "integer"
+            "type": "integer",
+            "format": "milliseconds"
           }
         }
       }
@@ -1730,10 +2133,6 @@ func init() {
         "email": {
           "type": "string",
           "format": "email"
-        },
-        "password": {
-          "type": "string",
-          "format": "password"
         },
         "pictureURL": {
           "type": "string",
@@ -1813,6 +2212,9 @@ func init() {
         }
       }
     },
+    "Forbidden": {
+      "description": "Forbidden."
+    },
     "NotFound": {
       "description": "Entity not found.",
       "schema": {
@@ -1837,8 +2239,23 @@ func init() {
           }
         }
       }
+    },
+    "Unauthorized": {
+      "description": "Unauthorized."
     }
   },
+  "securityDefinitions": {
+    "jwt": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "jwt": []
+    }
+  ],
   "x-components": {}
 }`))
 }

@@ -37,7 +37,7 @@ func NewGetUsersParams() GetUsersParams {
 // GetUsersParams contains all the bound params for the get users operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters GetUsers
+// swagger:parameters getUsers
 type GetUsersParams struct {
 
 	// HTTP Request Object

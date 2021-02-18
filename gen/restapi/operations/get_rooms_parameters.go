@@ -37,7 +37,7 @@ func NewGetRoomsParams() GetRoomsParams {
 // GetRoomsParams contains all the bound params for the get rooms operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters GetRooms
+// swagger:parameters getRooms
 type GetRoomsParams struct {
 
 	// HTTP Request Object

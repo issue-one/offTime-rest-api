@@ -16,7 +16,6 @@ var (
 	User01 = models.User{
 		Username:   "almaz",
 		Email:      "pearl@pax.os",
-		Password:   "thejewel",
 		PictureURL: "cam_123124.jpg",
 		RoomHistory: []strfmt.UUID{
 			room1Id, room3Id},
@@ -24,9 +23,8 @@ var (
 		UpdatedAt: strfmt.DateTime(time.Now().Round(0)),
 	}
 	User02 = models.User{
-		Username:    "tseahay",
+		Username:    "tsehay",
 		Email:       "sun@worsh.ip",
-		Password:    "kokob",
 		PictureURL:  "inyoface.jpg",
 		RoomHistory: []strfmt.UUID{room2Id, room3Id},
 		CreatedAt:   strfmt.DateTime(time.Now().Round(0)),
@@ -35,7 +33,6 @@ var (
 	User03 = models.User{
 		Username:   "emebet",
 		Email:      "mistress@nig.ht",
-		Password:   "danger",
 		PictureURL: "perplex.jpg",
 		RoomHistory: []strfmt.UUID{
 			room1Id, room2Id, room3Id,

@@ -38,9 +38,6 @@ func UserRepositoryTestSuite(
 				if user.Email != strfmt.Email(User01.Email) {
 					t.Errorf("failed: %v != %v", user.Email, User01.Email)
 				}
-				if user.Password != User01.Password {
-					t.Errorf("failed: %v != %v", user.Password, User01.Password)
-				}
 				if user.PictureURL != User01.PictureURL {
 					t.Errorf("failed: %v != %v", user.PictureURL, User01.PictureURL)
 				}
@@ -72,9 +69,6 @@ func UserRepositoryTestSuite(
 					t.Errorf("failed: %v != %v", user.Username, testUsername)
 				}
 				if string(user.Email) != string(testEmail) {
-					t.Errorf("failed: %v != %v", user.Username, testUsername)
-				}
-				if string(user.Password) != string(testPassword) {
 					t.Errorf("failed: %v != %v", user.Username, testUsername)
 				}
 			},
@@ -120,9 +114,6 @@ func UserRepositoryTestSuite(
 					t.Errorf("failed: %v", err)
 				}
 				if string(user.Email) != string(testEmail) {
-					t.Errorf("failed: %v != %v", user.Username, testUsername)
-				}
-				if string(user.Password) != string(testPassword) {
 					t.Errorf("failed: %v != %v", user.Username, testUsername)
 				}
 			},

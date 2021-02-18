@@ -1,0 +1,50 @@
+package http
+
+
+func putUserHandler() func(params operations.PutUserParams) middleware.Responder  {
+	return {
+		ctx := params.HTTPRequest.Context()
+		// TODO: check if min length is auto enforced
+		/* if len(params.Body.Password.String()) < 8 {
+			operations.NewPutUsersUsernameBadRequest().WithPayload(
+				&operations.PutUsersUsernameBadRequestBody{
+					Message: ,
+				}
+			)
+		} */
+
+		occupied, err := userRepo.IsUsernameOccupied(ctx, params.Username)
+		if err != nil {
+			return operations.NewPutUserInternalServerError().WithPayload(
+				&operations.PutUserInternalServerErrorBody{Message: err.Error()},
+			)
+		}
+		if occupied {
+			return operations.NewPutUserConflict().WithPayload(
+				&operations.PutUserConflictBody{Field: "Username"},
+			)
+		}
+		occupied, err = userRepo.IsEmailOccupied(ctx, params.Body.Email.String(), "")
+		if err != nil {
+			return operations.NewPutUserInternalServerError().WithPayload(
+				&operations.PutUserInternalServerErrorBody{Message: err.Error()},
+			)
+		}
+		if occupied {
+			return operations.NewPutUserConflict().WithPayload(
+				&operations.PutUserConflictBody{Field: "Email"},
+			)
+		}
+		user, err := userRepo.CreateUser(ctx, params.Username, params.Body)
+		if err != nil {
+			return operations.NewPutUserInternalServerError().WithPayload(
+				&operations.PutUserInternalServerErrorBody{Message: err.Error()},
+			)
+		}
+		if user.PictureURL != "" {
+			user.PictureURL = urlFromFilename(user.PictureURL)
+		}
+		return operations.NewPutUserOK().WithPayload(user)
+
+	}
+}

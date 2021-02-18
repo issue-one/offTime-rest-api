@@ -18,6 +18,8 @@ import (
 	"github.com/go-openapi/spec"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+
+	"github.com/issue-one/offTime-rest-api/gen/models"
 )
 
 // NewOffTimeAPI creates a new OffTime instance
@@ -43,51 +45,64 @@ func NewOffTimeAPI(spec *loads.Document) *OffTimeAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
-		DeleteUsersUsernameHandler: DeleteUsersUsernameHandlerFunc(func(params DeleteUsersUsernameParams) middleware.Responder {
-			return middleware.NotImplemented("operation DeleteUsersUsername has not yet been implemented")
+		DeleteAppUsageHistoryHandler: DeleteAppUsageHistoryHandlerFunc(func(params DeleteAppUsageHistoryParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteAppUsageHistory has not yet been implemented")
 		}),
-		DeleteUsersUsernameRoomHistoryHandler: DeleteUsersUsernameRoomHistoryHandlerFunc(func(params DeleteUsersUsernameRoomHistoryParams) middleware.Responder {
-			return middleware.NotImplemented("operation DeleteUsersUsernameRoomHistory has not yet been implemented")
+		DeleteUserHandler: DeleteUserHandlerFunc(func(params DeleteUserParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteUser has not yet been implemented")
 		}),
-		DeleteUsersUsernameUsageHistoryHandler: DeleteUsersUsernameUsageHistoryHandlerFunc(func(params DeleteUsersUsernameUsageHistoryParams) middleware.Responder {
-			return middleware.NotImplemented("operation DeleteUsersUsernameUsageHistory has not yet been implemented")
+		DeleteUserRoomHistoryHandler: DeleteUserRoomHistoryHandlerFunc(func(params DeleteUserRoomHistoryParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteUserRoomHistory has not yet been implemented")
 		}),
-		GetRoomsHandler: GetRoomsHandlerFunc(func(params GetRoomsParams) middleware.Responder {
+		GetAppUsageHistoryHandler: GetAppUsageHistoryHandlerFunc(func(params GetAppUsageHistoryParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation GetAppUsageHistory has not yet been implemented")
+		}),
+		GetRoomHandler: GetRoomHandlerFunc(func(params GetRoomParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation GetRoom has not yet been implemented")
+		}),
+		GetRoomsHandler: GetRoomsHandlerFunc(func(params GetRoomsParams, principal *models.User) middleware.Responder {
 			return middleware.NotImplemented("operation GetRooms has not yet been implemented")
 		}),
-		GetRoomsRoomIDHandler: GetRoomsRoomIDHandlerFunc(func(params GetRoomsRoomIDParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetRoomsRoomID has not yet been implemented")
+		GetTokenAuthRefreshHandler: GetTokenAuthRefreshHandlerFunc(func(params GetTokenAuthRefreshParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation GetTokenAuthRefresh has not yet been implemented")
 		}),
-		GetUsersHandler: GetUsersHandlerFunc(func(params GetUsersParams) middleware.Responder {
+		GetUserHandler: GetUserHandlerFunc(func(params GetUserParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation GetUser has not yet been implemented")
+		}),
+		GetUserRoomHistoryHandler: GetUserRoomHistoryHandlerFunc(func(params GetUserRoomHistoryParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation GetUserRoomHistory has not yet been implemented")
+		}),
+		GetUsersHandler: GetUsersHandlerFunc(func(params GetUsersParams, principal *models.User) middleware.Responder {
 			return middleware.NotImplemented("operation GetUsers has not yet been implemented")
 		}),
-		GetUsersUsernameHandler: GetUsersUsernameHandlerFunc(func(params GetUsersUsernameParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetUsersUsername has not yet been implemented")
+		PatchUserHandler: PatchUserHandlerFunc(func(params PatchUserParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation PatchUser has not yet been implemented")
 		}),
-		GetUsersUsernameRoomHistoryHandler: GetUsersUsernameRoomHistoryHandlerFunc(func(params GetUsersUsernameRoomHistoryParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetUsersUsernameRoomHistory has not yet been implemented")
+		PostAppUsageHandler: PostAppUsageHandlerFunc(func(params PostAppUsageParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation PostAppUsage has not yet been implemented")
 		}),
-		GetUsersUsernameUsageHistoryHandler: GetUsersUsernameUsageHistoryHandlerFunc(func(params GetUsersUsernameUsageHistoryParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetUsersUsernameUsageHistory has not yet been implemented")
+		PostRoomHandler: PostRoomHandlerFunc(func(params PostRoomParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation PostRoom has not yet been implemented")
 		}),
-		PatchUsersUsernameHandler: PatchUsersUsernameHandlerFunc(func(params PatchUsersUsernameParams) middleware.Responder {
-			return middleware.NotImplemented("operation PatchUsersUsername has not yet been implemented")
+		PostRoomUserUsagesHandler: PostRoomUserUsagesHandlerFunc(func(params PostRoomUserUsagesParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation PostRoomUserUsages has not yet been implemented")
 		}),
-		PostRoomsHandler: PostRoomsHandlerFunc(func(params PostRoomsParams) middleware.Responder {
-			return middleware.NotImplemented("operation PostRooms has not yet been implemented")
+		PostTokenAuthHandler: PostTokenAuthHandlerFunc(func(params PostTokenAuthParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostTokenAuth has not yet been implemented")
 		}),
-		PostRoomsRoomIDUserUsagesHandler: PostRoomsRoomIDUserUsagesHandlerFunc(func(params PostRoomsRoomIDUserUsagesParams) middleware.Responder {
-			return middleware.NotImplemented("operation PostRoomsRoomIDUserUsages has not yet been implemented")
+		PutUserHandler: PutUserHandlerFunc(func(params PutUserParams) middleware.Responder {
+			return middleware.NotImplemented("operation PutUser has not yet been implemented")
 		}),
-		PostUsersUsernameUsageHistoryHandler: PostUsersUsernameUsageHistoryHandlerFunc(func(params PostUsersUsernameUsageHistoryParams) middleware.Responder {
-			return middleware.NotImplemented("operation PostUsersUsernameUsageHistory has not yet been implemented")
+		PutUserPictureHandler: PutUserPictureHandlerFunc(func(params PutUserPictureParams, principal *models.User) middleware.Responder {
+			return middleware.NotImplemented("operation PutUserPicture has not yet been implemented")
 		}),
-		PutUsersUsernameHandler: PutUsersUsernameHandlerFunc(func(params PutUsersUsernameParams) middleware.Responder {
-			return middleware.NotImplemented("operation PutUsersUsername has not yet been implemented")
-		}),
-		PutUsersUsernamePictureHandler: PutUsersUsernamePictureHandlerFunc(func(params PutUsersUsernamePictureParams) middleware.Responder {
-			return middleware.NotImplemented("operation PutUsersUsernamePicture has not yet been implemented")
-		}),
+
+		// Applies when the "Authorization" header is set
+		JwtAuth: func(token string) (*models.User, error) {
+			return nil, errors.NotImplemented("api key auth (jwt) Authorization from header param [Authorization] has not yet been implemented")
+		},
+		// default authorizer is authorized meaning no requests are blocked
+		APIAuthorizer: security.Authorized(),
 	}
 }
 
@@ -127,36 +142,47 @@ type OffTimeAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
-	// DeleteUsersUsernameHandler sets the operation handler for the delete users username operation
-	DeleteUsersUsernameHandler DeleteUsersUsernameHandler
-	// DeleteUsersUsernameRoomHistoryHandler sets the operation handler for the delete users username room history operation
-	DeleteUsersUsernameRoomHistoryHandler DeleteUsersUsernameRoomHistoryHandler
-	// DeleteUsersUsernameUsageHistoryHandler sets the operation handler for the delete users username usage history operation
-	DeleteUsersUsernameUsageHistoryHandler DeleteUsersUsernameUsageHistoryHandler
+	// JwtAuth registers a function that takes a token and returns a principal
+	// it performs authentication based on an api key Authorization provided in the header
+	JwtAuth func(string) (*models.User, error)
+
+	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
+	APIAuthorizer runtime.Authorizer
+
+	// DeleteAppUsageHistoryHandler sets the operation handler for the delete app usage history operation
+	DeleteAppUsageHistoryHandler DeleteAppUsageHistoryHandler
+	// DeleteUserHandler sets the operation handler for the delete user operation
+	DeleteUserHandler DeleteUserHandler
+	// DeleteUserRoomHistoryHandler sets the operation handler for the delete user room history operation
+	DeleteUserRoomHistoryHandler DeleteUserRoomHistoryHandler
+	// GetAppUsageHistoryHandler sets the operation handler for the get app usage history operation
+	GetAppUsageHistoryHandler GetAppUsageHistoryHandler
+	// GetRoomHandler sets the operation handler for the get room operation
+	GetRoomHandler GetRoomHandler
 	// GetRoomsHandler sets the operation handler for the get rooms operation
 	GetRoomsHandler GetRoomsHandler
-	// GetRoomsRoomIDHandler sets the operation handler for the get rooms room ID operation
-	GetRoomsRoomIDHandler GetRoomsRoomIDHandler
+	// GetTokenAuthRefreshHandler sets the operation handler for the get token auth refresh operation
+	GetTokenAuthRefreshHandler GetTokenAuthRefreshHandler
+	// GetUserHandler sets the operation handler for the get user operation
+	GetUserHandler GetUserHandler
+	// GetUserRoomHistoryHandler sets the operation handler for the get user room history operation
+	GetUserRoomHistoryHandler GetUserRoomHistoryHandler
 	// GetUsersHandler sets the operation handler for the get users operation
 	GetUsersHandler GetUsersHandler
-	// GetUsersUsernameHandler sets the operation handler for the get users username operation
-	GetUsersUsernameHandler GetUsersUsernameHandler
-	// GetUsersUsernameRoomHistoryHandler sets the operation handler for the get users username room history operation
-	GetUsersUsernameRoomHistoryHandler GetUsersUsernameRoomHistoryHandler
-	// GetUsersUsernameUsageHistoryHandler sets the operation handler for the get users username usage history operation
-	GetUsersUsernameUsageHistoryHandler GetUsersUsernameUsageHistoryHandler
-	// PatchUsersUsernameHandler sets the operation handler for the patch users username operation
-	PatchUsersUsernameHandler PatchUsersUsernameHandler
-	// PostRoomsHandler sets the operation handler for the post rooms operation
-	PostRoomsHandler PostRoomsHandler
-	// PostRoomsRoomIDUserUsagesHandler sets the operation handler for the post rooms room ID user usages operation
-	PostRoomsRoomIDUserUsagesHandler PostRoomsRoomIDUserUsagesHandler
-	// PostUsersUsernameUsageHistoryHandler sets the operation handler for the post users username usage history operation
-	PostUsersUsernameUsageHistoryHandler PostUsersUsernameUsageHistoryHandler
-	// PutUsersUsernameHandler sets the operation handler for the put users username operation
-	PutUsersUsernameHandler PutUsersUsernameHandler
-	// PutUsersUsernamePictureHandler sets the operation handler for the put users username picture operation
-	PutUsersUsernamePictureHandler PutUsersUsernamePictureHandler
+	// PatchUserHandler sets the operation handler for the patch user operation
+	PatchUserHandler PatchUserHandler
+	// PostAppUsageHandler sets the operation handler for the post app usage operation
+	PostAppUsageHandler PostAppUsageHandler
+	// PostRoomHandler sets the operation handler for the post room operation
+	PostRoomHandler PostRoomHandler
+	// PostRoomUserUsagesHandler sets the operation handler for the post room user usages operation
+	PostRoomUserUsagesHandler PostRoomUserUsagesHandler
+	// PostTokenAuthHandler sets the operation handler for the post token auth operation
+	PostTokenAuthHandler PostTokenAuthHandler
+	// PutUserHandler sets the operation handler for the put user operation
+	PutUserHandler PutUserHandler
+	// PutUserPictureHandler sets the operation handler for the put user picture operation
+	PutUserPictureHandler PutUserPictureHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -237,50 +263,60 @@ func (o *OffTimeAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
-	if o.DeleteUsersUsernameHandler == nil {
-		unregistered = append(unregistered, "DeleteUsersUsernameHandler")
+	if o.JwtAuth == nil {
+		unregistered = append(unregistered, "AuthorizationAuth")
 	}
-	if o.DeleteUsersUsernameRoomHistoryHandler == nil {
-		unregistered = append(unregistered, "DeleteUsersUsernameRoomHistoryHandler")
+
+	if o.DeleteAppUsageHistoryHandler == nil {
+		unregistered = append(unregistered, "DeleteAppUsageHistoryHandler")
 	}
-	if o.DeleteUsersUsernameUsageHistoryHandler == nil {
-		unregistered = append(unregistered, "DeleteUsersUsernameUsageHistoryHandler")
+	if o.DeleteUserHandler == nil {
+		unregistered = append(unregistered, "DeleteUserHandler")
+	}
+	if o.DeleteUserRoomHistoryHandler == nil {
+		unregistered = append(unregistered, "DeleteUserRoomHistoryHandler")
+	}
+	if o.GetAppUsageHistoryHandler == nil {
+		unregistered = append(unregistered, "GetAppUsageHistoryHandler")
+	}
+	if o.GetRoomHandler == nil {
+		unregistered = append(unregistered, "GetRoomHandler")
 	}
 	if o.GetRoomsHandler == nil {
 		unregistered = append(unregistered, "GetRoomsHandler")
 	}
-	if o.GetRoomsRoomIDHandler == nil {
-		unregistered = append(unregistered, "GetRoomsRoomIDHandler")
+	if o.GetTokenAuthRefreshHandler == nil {
+		unregistered = append(unregistered, "GetTokenAuthRefreshHandler")
+	}
+	if o.GetUserHandler == nil {
+		unregistered = append(unregistered, "GetUserHandler")
+	}
+	if o.GetUserRoomHistoryHandler == nil {
+		unregistered = append(unregistered, "GetUserRoomHistoryHandler")
 	}
 	if o.GetUsersHandler == nil {
 		unregistered = append(unregistered, "GetUsersHandler")
 	}
-	if o.GetUsersUsernameHandler == nil {
-		unregistered = append(unregistered, "GetUsersUsernameHandler")
+	if o.PatchUserHandler == nil {
+		unregistered = append(unregistered, "PatchUserHandler")
 	}
-	if o.GetUsersUsernameRoomHistoryHandler == nil {
-		unregistered = append(unregistered, "GetUsersUsernameRoomHistoryHandler")
+	if o.PostAppUsageHandler == nil {
+		unregistered = append(unregistered, "PostAppUsageHandler")
 	}
-	if o.GetUsersUsernameUsageHistoryHandler == nil {
-		unregistered = append(unregistered, "GetUsersUsernameUsageHistoryHandler")
+	if o.PostRoomHandler == nil {
+		unregistered = append(unregistered, "PostRoomHandler")
 	}
-	if o.PatchUsersUsernameHandler == nil {
-		unregistered = append(unregistered, "PatchUsersUsernameHandler")
+	if o.PostRoomUserUsagesHandler == nil {
+		unregistered = append(unregistered, "PostRoomUserUsagesHandler")
 	}
-	if o.PostRoomsHandler == nil {
-		unregistered = append(unregistered, "PostRoomsHandler")
+	if o.PostTokenAuthHandler == nil {
+		unregistered = append(unregistered, "PostTokenAuthHandler")
 	}
-	if o.PostRoomsRoomIDUserUsagesHandler == nil {
-		unregistered = append(unregistered, "PostRoomsRoomIDUserUsagesHandler")
+	if o.PutUserHandler == nil {
+		unregistered = append(unregistered, "PutUserHandler")
 	}
-	if o.PostUsersUsernameUsageHistoryHandler == nil {
-		unregistered = append(unregistered, "PostUsersUsernameUsageHistoryHandler")
-	}
-	if o.PutUsersUsernameHandler == nil {
-		unregistered = append(unregistered, "PutUsersUsernameHandler")
-	}
-	if o.PutUsersUsernamePictureHandler == nil {
-		unregistered = append(unregistered, "PutUsersUsernamePictureHandler")
+	if o.PutUserPictureHandler == nil {
+		unregistered = append(unregistered, "PutUserPictureHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -297,12 +333,23 @@ func (o *OffTimeAPI) ServeErrorFor(operationID string) func(http.ResponseWriter,
 
 // AuthenticatorsFor gets the authenticators for the specified security schemes
 func (o *OffTimeAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
-	return nil
+	result := make(map[string]runtime.Authenticator)
+	for name := range schemes {
+		switch name {
+		case "jwt":
+			scheme := schemes[name]
+			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, func(token string) (interface{}, error) {
+				return o.JwtAuth(token)
+			})
+
+		}
+	}
+	return result
 }
 
 // Authorizer returns the registered authorizer
 func (o *OffTimeAPI) Authorizer() runtime.Authorizer {
-	return nil
+	return o.APIAuthorizer
 }
 
 // ConsumersFor gets the consumers for the specified media types.
@@ -375,15 +422,23 @@ func (o *OffTimeAPI) initHandlerCache() {
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
-	o.handlers["DELETE"]["/users/{username}"] = NewDeleteUsersUsername(o.context, o.DeleteUsersUsernameHandler)
+	o.handlers["DELETE"]["/users/{username}/appUsageHistory"] = NewDeleteAppUsageHistory(o.context, o.DeleteAppUsageHistoryHandler)
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
-	o.handlers["DELETE"]["/users/{username}/roomHistory"] = NewDeleteUsersUsernameRoomHistory(o.context, o.DeleteUsersUsernameRoomHistoryHandler)
+	o.handlers["DELETE"]["/users/{username}"] = NewDeleteUser(o.context, o.DeleteUserHandler)
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
-	o.handlers["DELETE"]["/users/{username}/usageHistory"] = NewDeleteUsersUsernameUsageHistory(o.context, o.DeleteUsersUsernameUsageHistoryHandler)
+	o.handlers["DELETE"]["/users/{username}/roomHistory"] = NewDeleteUserRoomHistory(o.context, o.DeleteUserRoomHistoryHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/users/{username}/appUsageHistory"] = NewGetAppUsageHistory(o.context, o.GetAppUsageHistoryHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/rooms/{roomID}"] = NewGetRoom(o.context, o.GetRoomHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
@@ -391,47 +446,47 @@ func (o *OffTimeAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/rooms/{roomID}"] = NewGetRoomsRoomID(o.context, o.GetRoomsRoomIDHandler)
+	o.handlers["GET"]["/token-auth-refresh"] = NewGetTokenAuthRefresh(o.context, o.GetTokenAuthRefreshHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/users/{username}"] = NewGetUser(o.context, o.GetUserHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/users/{username}/roomHistory"] = NewGetUserRoomHistory(o.context, o.GetUserRoomHistoryHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/users"] = NewGetUsers(o.context, o.GetUsersHandler)
-	if o.handlers["GET"] == nil {
-		o.handlers["GET"] = make(map[string]http.Handler)
-	}
-	o.handlers["GET"]["/users/{username}"] = NewGetUsersUsername(o.context, o.GetUsersUsernameHandler)
-	if o.handlers["GET"] == nil {
-		o.handlers["GET"] = make(map[string]http.Handler)
-	}
-	o.handlers["GET"]["/users/{username}/roomHistory"] = NewGetUsersUsernameRoomHistory(o.context, o.GetUsersUsernameRoomHistoryHandler)
-	if o.handlers["GET"] == nil {
-		o.handlers["GET"] = make(map[string]http.Handler)
-	}
-	o.handlers["GET"]["/users/{username}/usageHistory"] = NewGetUsersUsernameUsageHistory(o.context, o.GetUsersUsernameUsageHistoryHandler)
 	if o.handlers["PATCH"] == nil {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
-	o.handlers["PATCH"]["/users/{username}"] = NewPatchUsersUsername(o.context, o.PatchUsersUsernameHandler)
+	o.handlers["PATCH"]["/users/{username}"] = NewPatchUser(o.context, o.PatchUserHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/rooms"] = NewPostRooms(o.context, o.PostRoomsHandler)
+	o.handlers["POST"]["/users/{username}/appUsageHistory"] = NewPostAppUsage(o.context, o.PostAppUsageHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/rooms/{roomID}/userUsages"] = NewPostRoomsRoomIDUserUsages(o.context, o.PostRoomsRoomIDUserUsagesHandler)
+	o.handlers["POST"]["/rooms"] = NewPostRoom(o.context, o.PostRoomHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/users/{username}/usageHistory"] = NewPostUsersUsernameUsageHistory(o.context, o.PostUsersUsernameUsageHistoryHandler)
+	o.handlers["POST"]["/rooms/{roomID}/userUsages"] = NewPostRoomUserUsages(o.context, o.PostRoomUserUsagesHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/token-auth"] = NewPostTokenAuth(o.context, o.PostTokenAuthHandler)
 	if o.handlers["PUT"] == nil {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}
-	o.handlers["PUT"]["/users/{username}"] = NewPutUsersUsername(o.context, o.PutUsersUsernameHandler)
+	o.handlers["PUT"]["/users/{username}"] = NewPutUser(o.context, o.PutUserHandler)
 	if o.handlers["PUT"] == nil {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}
-	o.handlers["PUT"]["/users/{username}/picture"] = NewPutUsersUsernamePicture(o.context, o.PutUsersUsernamePictureHandler)
+	o.handlers["PUT"]["/users/{username}/picture"] = NewPutUserPicture(o.context, o.PutUserPictureHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

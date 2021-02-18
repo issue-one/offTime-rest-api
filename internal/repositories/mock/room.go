@@ -105,8 +105,8 @@ func (r roomRepo) GetMultipleRooms(ctx context.Context, roomIds []strfmt.UUID) (
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 	rooms := make([]*models.Room, 0, len(roomIds))
-	for _, roomId := range roomIds {
-		room, ok := r.rooms[roomId]
+	for _, roomID := range roomIds {
+		room, ok := r.rooms[roomID]
 		if !ok {
 			return nil, repositories.ErrRoomNotFound
 		}
