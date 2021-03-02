@@ -833,7 +833,7 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 				if err != nil {
 					client.Emit("joinRoom", response{
 						Code:    400,
-						Message: fmt.Sprintf("Unable to decode data: expects json in form { username: string, roomName: string}\nerr: %v", err),
+						Message: fmt.Sprintf("Unable to decode data: expects json in form { username: string, roomID: string}\nerr: %v", err),
 					})
 					return
 				}
@@ -910,7 +910,7 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			case repositories.ErrRoomNotFound:
 				client.Emit("joinRoom", response{
 					Code:    404,
-					Message: "No room found under given id: " + joinRoomMessage.Username,
+					Message: "No room found under given id: " + joinRoomMessage.RoomID,
 				})
 			default:
 				client.Emit("joinRoom", response{
@@ -997,7 +997,7 @@ func configureAPI(api *operations.OffTimeAPI) http.Handler {
 			)
 			switch err {
 			case nil:
-				hub.Emit(updateRoomUsageMessage.RoomID, "usageUpdate", room.UserUsages)
+				hub.Emit(updateRoomUsageMessage.RoomID, "roomUpdate", room)
 				// result, _ := json.MarshalIndent(room, "", "\t")
 				client.Emit("updateRoomUsage", response{
 					Code: 200,
